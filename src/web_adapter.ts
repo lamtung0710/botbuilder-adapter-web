@@ -12,6 +12,7 @@ import * as WebSocket from 'ws';
 const debug = Debug('botkit:web');
 
 const clients = {};
+const users = [];
 
 /**
  * Connect [Botkit](https://www.npmjs.com/package/botkit) or [BotBuilder](https://www.npmjs.com/package/botbuilder) to the Web.
@@ -61,7 +62,7 @@ export class WebAdapter extends BotAdapter {
      *
      * @param socketServerOptions an optional object containing parameters to send to a call to [WebSocket.server](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
      */
-    public constructor(socketServerOptions?: {[key: string]: any}) {
+    public constructor(socketServerOptions?: { [key: string]: any }) {
         super();
         this.socketServerOptions = socketServerOptions || null;
     }
@@ -106,7 +107,10 @@ export class WebAdapter extends BotAdapter {
                     // note the websocket connection for this user
                     ws.user = message.user;
                     clients[message.user] = ws;
-
+                    users.push({
+                        userId: message.user,
+                        ws
+                    });
                     // this stuff normally lives inside Botkit.congfigureWebhookEndpoint
                     const activity = {
                         timestamp: new Date(),
@@ -146,7 +150,7 @@ export class WebAdapter extends BotAdapter {
 
             ws.on('error', (err) => console.error('Websocket Error: ', err));
 
-            ws.on('close', function() {
+            ws.on('close', function () {
                 delete (clients[ws.user]);
             });
         });
@@ -177,7 +181,7 @@ export class WebAdapter extends BotAdapter {
 
         // if channelData is specified, overwrite any fields in message object
         if (activity.channelData) {
-            Object.keys(activity.channelData).forEach(function(key) {
+            Object.keys(activity.channelData).forEach(function (key) {
                 message[key] = activity.channelData[key];
             });
         }
@@ -232,7 +236,7 @@ export class WebAdapter extends BotAdapter {
      * @ignore
      */
     // eslint-disable-next-line
-     public async updateActivity(context: TurnContext, activity: Partial<Activity>): Promise<void> {
+    public async updateActivity(context: TurnContext, activity: Partial<Activity>): Promise<void> {
         debug('Web adapter does not support updateActivity.');
     }
 
@@ -241,7 +245,7 @@ export class WebAdapter extends BotAdapter {
      * @ignore
      */
     // eslint-disable-next-line
-     public async deleteActivity(context: TurnContext, reference: Partial<ConversationReference>): Promise<void> {
+    public async deleteActivity(context: TurnContext, reference: Partial<ConversationReference>): Promise<void> {
         debug('Web adapter does not support deleteActivity.');
     }
 
