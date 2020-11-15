@@ -9,6 +9,8 @@
 import { Activity, ActivityTypes, BotAdapter, ConversationReference, TurnContext, ResourceResponse } from 'botbuilder';
 import * as Debug from 'debug';
 import * as WebSocket from 'ws';
+import { v4 as uuidv4 } from 'uuid';
+import * as _ from 'lodash'
 const debug = Debug('botkit:web');
 
 const clients = {};
@@ -106,6 +108,7 @@ export class WebAdapter extends BotAdapter {
 
                     // note the websocket connection for this user
                     ws.user = message.user;
+                    ws.socketId = uuidv4();
                     clients[message.user] = ws;
                     users.push({
                         userId: message.user,
