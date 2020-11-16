@@ -14,7 +14,7 @@ import * as _ from 'lodash'
 const debug = Debug('botkit:web');
 
 const clients = {};
-const users = [];
+const conversation = {};
 
 /**
  * Connect [Botkit](https://www.npmjs.com/package/botkit) or [BotBuilder](https://www.npmjs.com/package/botbuilder) to the Web.
@@ -106,41 +106,41 @@ export class WebAdapter extends BotAdapter {
             ws.on('message', (payload) => {
                 try {
                     const message = JSON.parse(payload);
-                    // note the websocket connection for this user
-                    ws.user = message.user;
-
-                    clients[message.user] = ws;
-                    users.push({
-                        socketId: ws.socketId,
-                        userId: message.user,
-                        ws
-                    });
-                    // this stuff normally lives inside Botkit.congfigureWebhookEndpoint
-                    const activity = {
-                        timestamp: new Date(),
-                        channelId: 'websocket',
-                        conversation: {
-                            id: message.user
-                        },
-                        from: {
-                            id: message.user
-                        },
-                        recipient: {
-                            id: 'bot'
-                        },
-                        channelData: message,
-                        text: message.text,
-                        type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
-                    };
-
-                    // set botkit's event type
-                    if (activity.type !== ActivityTypes.Message) {
-                        activity.channelData.botkitEventType = message.type;
+                    if (message.type = 'request' && message.value == 'join-conversation') {
+                        _.set(conversation[message.channelId][ws.socketId], ws);
                     }
+                    else {
+                        // note the websocket connection for this user
+                        ws.user = message.user;
 
-                    const context = new TurnContext(this, activity as Activity);
-                    this.runMiddleware(context, logic)
-                        .catch((err) => { console.error(err.toString()); });
+                        clients[message.user] = ws;
+                        // this stuff normally lives inside Botkit.congfigureWebhookEndpoint
+                        const activity = {
+                            timestamp: new Date(),
+                            channelId: 'websocket',
+                            conversation: {
+                                id: message.user
+                            },
+                            from: {
+                                id: message.user
+                            },
+                            recipient: {
+                                id: 'bot'
+                            },
+                            channelData: message,
+                            text: message.text,
+                            type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
+                        };
+
+                        // set botkit's event type
+                        if (activity.type !== ActivityTypes.Message) {
+                            activity.channelData.botkitEventType = message.type;
+                        }
+
+                        const context = new TurnContext(this, activity as Activity);
+                        this.runMiddleware(context, logic)
+                            .catch((err) => { console.error(err.toString()); });
+                    }
                 } catch (e) {
                     const alert = [
                         'Error parsing incoming message from websocket.',
