@@ -100,17 +100,18 @@ export class WebAdapter extends BotAdapter {
 
         this.wss.on('connection', (ws) => {
             ws.isAlive = true;
+            ws.socketId = uuidv4();
             ws.on('pong', heartbeat);
 
             ws.on('message', (payload) => {
                 try {
                     const message = JSON.parse(payload);
-
                     // note the websocket connection for this user
                     ws.user = message.user;
-                    ws.socketId = uuidv4();
+
                     clients[message.user] = ws;
                     users.push({
+                        socketId: ws.socketId,
                         userId: message.user,
                         ws
                     });
