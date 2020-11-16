@@ -107,7 +107,10 @@ export class WebAdapter extends BotAdapter {
                 try {
                     const message = JSON.parse(payload);
                     if (message.type = 'request' && message.value == 'join-conversation') {
-                        _.set(conversation[message.channelId][ws.socketId], ws);
+                        if (!conversation[message.channelId]) {
+                            conversation[message.channelId] = { [ws.socketId]: ws }
+                        }
+                        conversation[message.channelId][ws.socketId] = ws;
                     }
                     else {
                         // note the websocket connection for this user
@@ -140,6 +143,22 @@ export class WebAdapter extends BotAdapter {
                         const context = new TurnContext(this, activity as Activity);
                         this.runMiddleware(context, logic)
                             .catch((err) => { console.error(err.toString()); });
+                        if (conversation[message.user]) {
+                            for (const property in conversation[message.user]) {
+                                const ws = conversation[message.user][property];
+                                if (ws && ws.readyState === 1) {
+                                    try {
+                                        ws.send(JSON.stringify(message));
+                                    }
+                                    catch (err) {
+                                        console.error(err);
+                                    }
+                                }
+                                else {
+                                    console.error('Could not send message, no open websocket found');
+                                }
+                            }
+                        }
                     }
                 } catch (e) {
                     const alert = [
