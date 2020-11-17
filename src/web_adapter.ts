@@ -106,7 +106,7 @@ export class WebAdapter extends BotAdapter {
             ws.on('message', (payload) => {
                 try {
                     const message = JSON.parse(payload);
-                    if (message.type = 'request' && message.value == 'join-conversation') {
+                    if (message.type == 'request') {
                         if (!conversation[message.channelId]) {
                             conversation[message.channelId] = { [ws.socketId]: ws }
                         }
