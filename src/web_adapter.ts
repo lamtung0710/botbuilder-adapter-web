@@ -80,7 +80,29 @@ export class WebAdapter extends BotAdapter {
             this.createSocketServer(botkit.http, this.socketServerOptions, botkit.handleTurn.bind(botkit));
         });
     }
+    private sendMessage(message) {
+        try {
+            if (conversation[message.user]) {
+                for (const property in conversation[message.user]) {
+                    const ws = conversation[message.user][property];
+                    if (ws && ws.readyState === 1) {
+                        try {
+                            ws.send(JSON.stringify(message));
+                        }
+                        catch (err) {
+                            console.error(err);
+                        }
+                    }
+                    else {
+                        console.error('Could not send message, no open websocket found');
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('sendMessage',error);
+        }
 
+    }
     /**
      * Bind a websocket listener to an existing webserver object.
      * Note: Create the server using Node's http.createServer
@@ -106,11 +128,27 @@ export class WebAdapter extends BotAdapter {
             ws.on('message', (payload) => {
                 try {
                     const message = JSON.parse(payload);
-                    if (message.type == 'request') {
-                        if (!conversation[message.channelId]) {
-                            conversation[message.channelId] = { [ws.socketId]: ws }
+                    if (_.get(message, 'type') == 'request') {
+                        if (_.get(message, 'value') == 'join-conversation') {
+                            if (!conversation[message.channelId]) {
+                                conversation[message.channelId] = { [ws.socketId]: ws }
+                            }
+                            conversation[message.channelId][ws.socketId] = ws;
                         }
-                        conversation[message.channelId][ws.socketId] = ws;
+                        if (_.get(message, 'value') == 'message' && message.data) {
+                            const userWs = clients[message.data.user];
+                            if (userWs && userWs.readyState === 1) {
+                                try {
+                                    userWs.send(JSON.stringify(message.data));
+                                }
+                                catch (err) {
+                                    console.error(err);
+                                }
+                            }
+                            else {
+                                console.error('Could not send message, no open websocket found');
+                            }
+                        }
                     }
                     else {
                         // note the websocket connection for this user
@@ -143,22 +181,9 @@ export class WebAdapter extends BotAdapter {
                         const context = new TurnContext(this, activity as Activity);
                         this.runMiddleware(context, logic)
                             .catch((err) => { console.error(err.toString()); });
-                        if (conversation[message.user]) {
-                            for (const property in conversation[message.user]) {
-                                const ws = conversation[message.user][property];
-                                if (ws && ws.readyState === 1) {
-                                    try {
-                                        ws.send(JSON.stringify(message));
-                                    }
-                                    catch (err) {
-                                        console.error(err);
-                                    }
-                                }
-                                else {
-                                    console.error('Could not send message, no open websocket found');
-                                }
-                            }
-                        }
+                        message.from = message.user;
+                        message.recipient = 'bot';
+                        this.sendMessage(message);
                     }
                 } catch (e) {
                     const alert = [
@@ -234,6 +259,10 @@ export class WebAdapter extends BotAdapter {
                 if (ws && ws.readyState === 1) {
                     try {
                         ws.send(JSON.stringify(message));
+                        message.user = activity.recipient.id;
+                        message.from ='bot';
+                        message.recipient =  message.user;
+                        this.sendMessage(message);
                     } catch (err) {
                         console.error(err);
                     }
