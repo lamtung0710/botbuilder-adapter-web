@@ -135,8 +135,8 @@ export class WebAdapter extends BotAdapter {
                             }
                             conversation[message.channelId][ws.socketId] = ws;
                         }
-                        if (_.get(message, 'value') == 'message' && message.data) {
-                            const userWs = clients[message.data.user];
+                        if (_.get(message, 'value') == 'message' && message?.data) {
+                            const userWs = clients[message.data?.user];
                             if (userWs && userWs.readyState === 1) {
                                 try {
                                     userWs.send(JSON.stringify(message.data));
