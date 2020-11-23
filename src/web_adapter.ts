@@ -10,7 +10,9 @@ import { Activity, ActivityTypes, BotAdapter, ConversationReference, TurnContext
 import * as Debug from 'debug';
 import * as WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import * as _ from 'lodash'
+import * as _ from 'lodash';
+import * as mongoose from 'mongoose';
+import MessageWeb from './message-web.model';
 const debug = Debug('botkit:web');
 
 const clients = {};
@@ -79,6 +81,28 @@ export class WebAdapter extends BotAdapter {
         botkit.ready(() => {
             this.createSocketServer(botkit.http, this.socketServerOptions, botkit.handleTurn.bind(botkit));
         });
+        if (process.env.STORE_MESSAGE && process.env.MONGO_URI) {
+            mongoose.connect(process.env.MONGO_URI, { useUnifiedTopology: true, useNewUrlParser: true });
+            const connection = mongoose.connection;
+            connection.once("open", function () {
+                console.log("BOTKIT: MongoDB database connection established successfully");
+            });
+        }
+    }
+    protected async storageMessage(messageType, messageData, MessageFromBot, ChannelId) {
+        if (!process.env.STORE_MESSAGE)
+            return
+        try {
+            let message = new MessageWeb({
+                MessageType: messageType,
+                Message: messageData,
+                MessageFromBot,
+                ChannelId
+            });
+            return await message.save();
+        } catch (error) {
+            console.log(error);
+        }
     }
     private sendMessage(message) {
         try {
@@ -99,7 +123,7 @@ export class WebAdapter extends BotAdapter {
                 }
             }
         } catch (error) {
-            console.log('sendMessage',error);
+            console.log('sendMessage', error);
         }
 
     }
@@ -125,7 +149,7 @@ export class WebAdapter extends BotAdapter {
             ws.socketId = uuidv4();
             ws.on('pong', heartbeat);
 
-            ws.on('message', (payload) => {
+            ws.on('message', async (payload) => {
                 try {
                     const message = JSON.parse(payload);
                     if (_.get(message, 'type') == 'request') {
@@ -184,6 +208,9 @@ export class WebAdapter extends BotAdapter {
                         message.from = message.user;
                         message.recipient = 'bot';
                         this.sendMessage(message);
+                        if (message.type === ActivityTypes.Message) {
+                            await this.storageMessage('normal_text', message.text, false, message.user);
+                        }
                     }
                 } catch (e) {
                     const alert = [
@@ -260,8 +287,8 @@ export class WebAdapter extends BotAdapter {
                     try {
                         ws.send(JSON.stringify(message));
                         message.user = activity.recipient.id;
-                        message.from ='bot';
-                        message.recipient =  message.user;
+                        message.from = 'bot';
+                        message.recipient = message.user;
                         this.sendMessage(message);
                     } catch (err) {
                         console.error(err);
