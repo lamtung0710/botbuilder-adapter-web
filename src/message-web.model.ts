@@ -24,8 +24,8 @@ const botKitMessageWebSchema = new mongoose.Schema({
 
     ChannelId: {
         type: String,
-    }
-
+    },
+    sendBy: String,
 }, {
     timestamps: {
         createdAt: "CreatedUTCDate",
