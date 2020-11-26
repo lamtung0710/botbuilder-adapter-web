@@ -166,7 +166,17 @@ export class WebAdapter extends BotAdapter {
                             const userWs = clients[message.data?.user];
                             if (userWs && userWs.readyState === 1) {
                                 try {
-                                    userWs.send(JSON.stringify(message.data));
+                                    const messageData = {
+                                        "type": "message",
+                                        "bot": false,
+                                        "data": {
+                                          "Type": message.data.messageType || 'normal_text',
+                                          "Text": message.data?.text,
+                                          "Buttons": []
+                                        },
+                                        "eventEmit": "received_message"
+                                      }
+                                    userWs.send(JSON.stringify(messageData));
                                     if (message?.data?.type === ActivityTypes.Message) {
                                         await this.storageMessage(message.data.messageType || 'normal_text', message.data?.text, true, message.data?.user, message.data?.from);
                                     }
