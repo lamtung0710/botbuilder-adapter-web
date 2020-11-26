@@ -174,7 +174,7 @@ export class WebAdapter extends BotAdapter {
                                             "Text": message.data?.text,
                                             "Buttons": []
                                         },
-                                        "eventEmit": "received_message"
+                                        "eventEmit": "received-message"
                                     };
                                     userWs.send(JSON.stringify(messageData));
                                     if (message?.data?.type === ActivityTypes.Message) {
