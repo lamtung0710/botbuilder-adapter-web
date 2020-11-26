@@ -170,17 +170,15 @@ export class WebAdapter extends BotAdapter {
                                         "type": "message",
                                         "bot": false,
                                         "data": {
-                                            "Type": message.data.messageType || 'normal_text',
+                                            "Type": message.data.messageType || 'text',
                                             "Text": message.data?.text,
                                             "Buttons": []
                                         },
                                         "eventEmit": "received_message"
                                     };
-                                    console.log('111111', messageData)
                                     userWs.send(JSON.stringify(messageData));
-                                    console.log('2222222')
                                     if (message?.data?.type === ActivityTypes.Message) {
-                                        await this.storageMessage(message.data.messageType || 'normal_text', message.data?.text, true, message.data?.user, message.data?.from);
+                                        await this.storageMessage(message.data.messageType || 'text', message.data?.text, true, message.data?.user, message.data?.from);
                                     }
                                 }
                                 catch (err) {
@@ -227,7 +225,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = 'bot';
                         this.sendMessage(message);
                         if (message.type === ActivityTypes.Message) {
-                            await this.storageMessage(message.messageType || 'normal_text', message.text, false, message.user, message.from);
+                            await this.storageMessage(message.messageType || 'text', message.text, false, message.user, message.from);
                         }
                     }
                 } catch (e) {
@@ -309,7 +307,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = message.user;
                         this.sendMessage(message);
                         if (message?.type === ActivityTypes.Message && message.text) {
-                            await this.storageMessage(message.messageType || 'normal_text', message.text, true, message.user, message.from);
+                            await this.storageMessage(message.messageType || 'text', message.text, true, message.user, message.from);
                         }
                     } catch (err) {
                         console.error(err);
