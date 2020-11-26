@@ -170,13 +170,15 @@ export class WebAdapter extends BotAdapter {
                                         "type": "message",
                                         "bot": false,
                                         "data": {
-                                          "Type": message.data.messageType || 'normal_text',
-                                          "Text": message.data?.text,
-                                          "Buttons": []
+                                            "Type": message.data.messageType || 'normal_text',
+                                            "Text": message.data?.text,
+                                            "Buttons": []
                                         },
                                         "eventEmit": "received_message"
-                                      }
+                                    };
+                                    console.log('111111', messageData)
                                     userWs.send(JSON.stringify(messageData));
+                                    console.log('2222222')
                                     if (message?.data?.type === ActivityTypes.Message) {
                                         await this.storageMessage(message.data.messageType || 'normal_text', message.data?.text, true, message.data?.user, message.data?.from);
                                     }
