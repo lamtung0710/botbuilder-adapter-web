@@ -168,7 +168,7 @@ export class WebAdapter extends BotAdapter {
                                 try {
                                     const messageData = {
                                         "type": "message",
-                                        "bot": false,
+                                        "bot": true,
                                         "data": {
                                             "Type": message.data.messageType || 'text',
                                             "Text": message.data?.text,
@@ -177,6 +177,7 @@ export class WebAdapter extends BotAdapter {
                                         "eventEmit": "received_message"
                                     };
                                     userWs.send(JSON.stringify(messageData));
+                                    ws.send(JSON.stringify(messageData))
                                     if (message?.data?.type === ActivityTypes.Message) {
                                         await this.storageMessage(message.data.messageType || 'text', message.data?.text, true, message.data?.user, message.data?.from);
                                     }
