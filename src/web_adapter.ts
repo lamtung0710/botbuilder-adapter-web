@@ -176,6 +176,14 @@ export class WebAdapter extends BotAdapter {
                                         },
                                         "eventEmit": "received_message"
                                     };
+                                    if (message.data?.image) {
+                                        delete messageData.data.Text;
+                                        messageData.data['image'] = message.data?.image
+                                    }
+                                    if (message.data?.image) {
+                                        delete messageData.data.Text;
+                                        messageData.data['file'] = message.data?.file
+                                    }
                                     userWs.send(JSON.stringify(messageData));
                                     ws.send(JSON.stringify(messageData))
                                     if (message?.data?.type === ActivityTypes.Message) {
