@@ -180,7 +180,7 @@ export class WebAdapter extends BotAdapter {
                                         delete messageData.data.Text;
                                         messageData.data['image'] = message.data?.image
                                     }
-                                    if (message.data?.image) {
+                                    if (message.data?.file) {
                                         delete messageData.data.Text;
                                         messageData.data['file'] = message.data?.file
                                     }
