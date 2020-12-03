@@ -232,7 +232,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = 'bot';
                         this.sendMessage(message);
                         if (message.type === ActivityTypes.Message) {
-                            await this.storageMessage(message.messageType || 'text', message.text, message.user, message.from);
+                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
                         }
                     }
                 } catch (e) {
@@ -314,7 +314,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = message.user;
                         this.sendMessage(message);
                         if (message?.type === ActivityTypes.Message && message.text) {
-                            await this.storageMessage(message.messageType || 'text', message.text, message.user, message.from);
+                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
                         }
                     } catch (err) {
                         console.error(err);
