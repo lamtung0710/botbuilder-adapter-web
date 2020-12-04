@@ -1,3 +1,4 @@
+"use strict";
 /**
  * @module botbuilder-adapter-web
  */
@@ -5,41 +6,34 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import { Activity, ActivityTypes, BotAdapter, ConversationReference, TurnContext, ResourceResponse } from 'botbuilder';
-import * as Debug from 'debug';
-import * as WebSocket from 'ws';
-import { v4 as uuidv4 } from 'uuid';
-import * as _ from 'lodash';
-import * as mongoose from 'mongoose';
-import MessageWeb from './message-web.model';
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WebAdapter = void 0;
+const botbuilder_1 = require("botbuilder");
+const Debug = require("debug");
+const WebSocket = require("ws");
+const uuid_1 = require("uuid");
+const _ = require("lodash");
+const mongoose = require("mongoose");
+const message_web_model_1 = require("./message-web.model");
 const debug = Debug('botkit:web');
-
 const clients = {};
 const conversation = {};
-
 /**
  * Connect [Botkit](https://www.npmjs.com/package/botkit) or [BotBuilder](https://www.npmjs.com/package/botbuilder) to the Web.
  * It offers both websocket and webhook capabilities.
  * To use this adapter, you will need a compatible chat client - generate one using the [Botkit yeoman generator](https://npmjs.com/package/generator-botkit),
  * or use [the one included in the project repo here.](https://github.com/howdyai/botkit/tree/master/packages/botbuilder-adapter-web/client)
  */
-export class WebAdapter extends BotAdapter {
-    /**
-     * Name used to register this adapter with Botkit.
-     * @ignore
-     */
-    public name = 'Web Adapter';
-
-    /**
-     * The websocket server.
-     */
-    public wss;
-
-    private socketServerOptions: {
-        [key: string]: any;
-    };
-
+class WebAdapter extends botbuilder_1.BotAdapter {
     /**
      * Create an adapter to handle incoming messages from a websocket and/or webhook and translate them into a standard format for processing by your bot.
      *
@@ -66,17 +60,21 @@ export class WebAdapter extends BotAdapter {
      *
      * @param socketServerOptions an optional object containing parameters to send to a call to [WebSocket.server](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback).
      */
-    public constructor(socketServerOptions?: { [key: string]: any }) {
+    constructor(socketServerOptions) {
         super();
+        /**
+         * Name used to register this adapter with Botkit.
+         * @ignore
+         */
+        this.name = 'Web Adapter';
         this.socketServerOptions = socketServerOptions || null;
     }
-
     /**
      * Botkit-only: Initialization function called automatically when used with Botkit.
      *      * Calls createSocketServer to bind a websocket listener to Botkit's pre-existing webserver.
      * @param botkit
      */
-    public init(botkit): void {
+    init(botkit) {
         // when the bot is ready, register the webhook subscription with the Webex API
         botkit.ready(() => {
             this.createSocketServer(botkit.http, this.socketServerOptions, botkit.handleTurn.bind(botkit));
@@ -89,22 +87,25 @@ export class WebAdapter extends BotAdapter {
             });
         }
     }
-    protected async storageMessage(messageType, messageData, ChannelId, sendBy) {
-        if (!process.env.STORE_MESSAGE)
-            return
-        try {
-            let message = new MessageWeb({
-                MessageType: messageType,
-                Message: messageData,
-                ChannelId,
-                sendBy
-            });
-            return await message.save();
-        } catch (error) {
-            console.log(error);
-        }
+    storageMessage(messageType, messageData, ChannelId, sendBy) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!process.env.STORE_MESSAGE)
+                return;
+            try {
+                let message = new message_web_model_1.default({
+                    MessageType: messageType,
+                    Message: messageData,
+                    ChannelId,
+                    sendBy
+                });
+                return yield message.save();
+            }
+            catch (error) {
+                console.log(error);
+            }
+        });
     }
-    private sendMessage(message) {
+    sendMessage(message) {
         try {
             if (conversation[message.user]) {
                 for (const property in conversation[message.user]) {
@@ -122,10 +123,10 @@ export class WebAdapter extends BotAdapter {
                     }
                 }
             }
-        } catch (error) {
+        }
+        catch (error) {
             console.log('sendMessage', error);
         }
-
     }
     /**
      * Bind a websocket listener to an existing webserver object.
@@ -134,34 +135,29 @@ export class WebAdapter extends BotAdapter {
      * @param socketOptions additional options passed when creating the websocket server with [WebSocket.server](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback)
      * @param logic a turn handler function in the form `async(context)=>{ ... }` that will handle the bot's logic.
      */
-    public createSocketServer(server, socketOptions: any = {}, logic): void {
-        this.wss = new WebSocket.Server({
-            server,
-            ...socketOptions
-        });
-
-        function heartbeat(): void {
+    createSocketServer(server, socketOptions = {}, logic) {
+        this.wss = new WebSocket.Server(Object.assign({ server }, socketOptions));
+        function heartbeat() {
             this.isAlive = true;
         }
-
         this.wss.on('connection', (ws) => {
             ws.isAlive = true;
-            ws.socketId = uuidv4();
+            ws.socketId = uuid_1.v4();
             ws.on('pong', heartbeat);
-
-            ws.on('message', async (payload) => {
+            ws.on('message', (payload) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
                 try {
                     const message = JSON.parse(payload);
                     if (_.get(message, 'type') == 'request') {
                         if (_.get(message, 'value') == 'join-conversation') {
                             if (!conversation[message.channelId]) {
-                                conversation[message.channelId] = { [ws.socketId]: ws }
+                                conversation[message.channelId] = { [ws.socketId]: ws };
                             }
                             conversation[message.channelId][ws.socketId] = ws;
-                            ws.send(JSON.stringify({ type: ActivityTypes.Message, text: 'You are already in the conversation!' }))
+                            ws.send(JSON.stringify({ type: botbuilder_1.ActivityTypes.Message, text: 'You are already in the conversation!' }));
                         }
-                        if (_.get(message, 'value') == 'message' && message?.data) {
-                            const userWs = clients[message.data?.user];
+                        if (_.get(message, 'value') == 'message' && (message === null || message === void 0 ? void 0 : message.data)) {
+                            const userWs = clients[(_a = message.data) === null || _a === void 0 ? void 0 : _a.user];
                             if (userWs && userWs.readyState === 1) {
                                 try {
                                     const messageData = {
@@ -169,40 +165,36 @@ export class WebAdapter extends BotAdapter {
                                         "bot": true,
                                         "data": {
                                             "Type": message.data.messageType || 'text',
-                                            "Text": message.data?.text,
+                                            "Text": (_b = message.data) === null || _b === void 0 ? void 0 : _b.text,
                                             "Buttons": []
                                         },
                                         "eventEmit": "received_message"
                                     };
-                                    if (message.data?.text) {
+                                    if ((_c = message.data) === null || _c === void 0 ? void 0 : _c.text) {
                                         userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                        ws.send(JSON.stringify(messageData));
+                                        if (((_d = message === null || message === void 0 ? void 0 : message.data) === null || _d === void 0 ? void 0 : _d.type) === botbuilder_1.ActivityTypes.Message) {
+                                            yield this.storageMessage(message.data.messageType || 'text', messageData, (_e = message.data) === null || _e === void 0 ? void 0 : _e.user, (_f = message.data) === null || _f === void 0 ? void 0 : _f.from);
                                         }
                                     }
-                                    if (message.data?.image) {
+                                    if ((_g = message.data) === null || _g === void 0 ? void 0 : _g.image) {
                                         delete messageData.data.Text;
-                                        messageData.data.Type = 'image';
-                                        messageData.data['Url'] = message.data?.image
+                                        messageData.data['image'] = (_h = message.data) === null || _h === void 0 ? void 0 : _h.image;
                                         userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                        ws.send(JSON.stringify(messageData));
+                                        if (((_j = message === null || message === void 0 ? void 0 : message.data) === null || _j === void 0 ? void 0 : _j.type) === botbuilder_1.ActivityTypes.Message) {
+                                            yield this.storageMessage(message.data.messageType || 'text', messageData, (_k = message.data) === null || _k === void 0 ? void 0 : _k.user, (_l = message.data) === null || _l === void 0 ? void 0 : _l.from);
                                         }
                                     }
-                                    if (message.data?.file) {
+                                    if ((_m = message.data) === null || _m === void 0 ? void 0 : _m.file) {
                                         delete messageData.data.Text;
-                                        messageData.data.Type = 'file';
-                                        messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/')+1);
-                                        messageData.data['Url'] = message.data?.file
+                                        messageData.data['file'] = (_o = message.data) === null || _o === void 0 ? void 0 : _o.file;
                                         userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                        ws.send(JSON.stringify(messageData));
+                                        if (((_p = message === null || message === void 0 ? void 0 : message.data) === null || _p === void 0 ? void 0 : _p.type) === botbuilder_1.ActivityTypes.Message) {
+                                            yield this.storageMessage(message.data.messageType || 'text', messageData, (_q = message.data) === null || _q === void 0 ? void 0 : _q.user, (_r = message.data) === null || _r === void 0 ? void 0 : _r.from);
                                         }
                                     }
-
                                 }
                                 catch (err) {
                                     console.error(err);
@@ -216,7 +208,6 @@ export class WebAdapter extends BotAdapter {
                     else {
                         // note the websocket connection for this user
                         ws.user = message.user;
-
                         clients[message.user] = ws;
                         // this stuff normally lives inside Botkit.congfigureWebhookEndpoint
                         const activity = {
@@ -233,25 +224,24 @@ export class WebAdapter extends BotAdapter {
                             },
                             channelData: message,
                             text: message.text,
-                            type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
+                            type: message.type === 'message' ? botbuilder_1.ActivityTypes.Message : botbuilder_1.ActivityTypes.Event
                         };
-
                         // set botkit's event type
-                        if (activity.type !== ActivityTypes.Message) {
+                        if (activity.type !== botbuilder_1.ActivityTypes.Message) {
                             activity.channelData.botkitEventType = message.type;
                         }
-
-                        const context = new TurnContext(this, activity as Activity);
+                        const context = new botbuilder_1.TurnContext(this, activity);
                         this.runMiddleware(context, logic)
                             .catch((err) => { console.error(err.toString()); });
                         message.from = message.user;
                         message.recipient = 'bot';
                         this.sendMessage(message);
-                        if (message.type === ActivityTypes.Message) {
-                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                        if (message.type === botbuilder_1.ActivityTypes.Message) {
+                            yield this.storageMessage(message.messageType || 'text', message, message.user, message.from);
                         }
                     }
-                } catch (e) {
+                }
+                catch (e) {
                     const alert = [
                         'Error parsing incoming message from websocket.',
                         'Message must be JSON, and should be in the format documented here:',
@@ -260,15 +250,12 @@ export class WebAdapter extends BotAdapter {
                     console.error(alert.join('\n'));
                     console.error(e);
                 }
-            });
-
+            }));
             ws.on('error', (err) => console.error('Websocket Error: ', err));
-
             ws.on('close', function () {
                 delete (clients[ws.user]);
             });
         });
-
         setInterval(() => {
             this.wss.clients.forEach(function each(ws) {
                 if (ws.isAlive === false) {
@@ -281,159 +268,150 @@ export class WebAdapter extends BotAdapter {
             });
         }, 30000);
     }
-
     /**
      * Caste a message to the simple format used by the websocket client
      * @param activity
      * @returns a message ready to send back to the websocket client.
      */
-    private activityToMessage(activity: Partial<Activity>): any {
+    activityToMessage(activity) {
         const message = {
             type: activity.type,
             text: activity.text
         };
-
         // if channelData is specified, overwrite any fields in message object
         if (activity.channelData) {
             Object.keys(activity.channelData).forEach(function (key) {
                 message[key] = activity.channelData[key];
             });
         }
-
         debug('OUTGOING > ', message);
         return message;
     }
-
     /**
      * Standard BotBuilder adapter method to send a message from the bot to the messaging API.
      * [BotBuilder reference docs](https://docs.microsoft.com/en-us/javascript/api/botbuilder-core/botadapter?view=botbuilder-ts-latest#sendactivities).
      * @param context A TurnContext representing the current incoming message and environment. (not used)
      * @param activities An array of outgoing activities to be sent back to the messaging API.
      */
-    public async sendActivities(context: TurnContext, activities: Partial<Activity>[]): Promise<ResourceResponse[]> {
-        const responses = [];
-        for (let a = 0; a < activities.length; a++) {
-            const activity = activities[a];
-
-            const message = this.activityToMessage(activity);
-
-            const channel = context.activity.channelId;
-
-            if (channel === 'websocket') {
-                // If this turn originated with a websocket message, respond via websocket
-                const ws = clients[activity.recipient.id];
-                if (ws && ws.readyState === 1) {
-                    try {
-                        ws.send(JSON.stringify(message));
-                        message.user = activity.recipient.id;
-                        message.from = 'bot';
-                        message.recipient = message.user;
-                        this.sendMessage(message);
-                        if (message?.type === ActivityTypes.Message && message.text) {
-                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+    sendActivities(context, activities) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const responses = [];
+            for (let a = 0; a < activities.length; a++) {
+                const activity = activities[a];
+                const message = this.activityToMessage(activity);
+                const channel = context.activity.channelId;
+                if (channel === 'websocket') {
+                    // If this turn originated with a websocket message, respond via websocket
+                    const ws = clients[activity.recipient.id];
+                    if (ws && ws.readyState === 1) {
+                        try {
+                            ws.send(JSON.stringify(message));
+                            message.user = activity.recipient.id;
+                            message.from = 'bot';
+                            message.recipient = message.user;
+                            this.sendMessage(message);
+                            if ((message === null || message === void 0 ? void 0 : message.type) === botbuilder_1.ActivityTypes.Message && message.text) {
+                                yield this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                            }
                         }
-                    } catch (err) {
-                        console.error(err);
+                        catch (err) {
+                            console.error(err);
+                        }
                     }
-                } else {
-                    console.error('Could not send message, no open websocket found');
+                    else {
+                        console.error('Could not send message, no open websocket found');
+                    }
                 }
-            } else if (channel === 'webhook') {
-                // if this turn originated with a webhook event, enqueue the response to be sent via the http response
-                let outbound = context.turnState.get('httpBody');
-                if (!outbound) {
-                    outbound = [];
+                else if (channel === 'webhook') {
+                    // if this turn originated with a webhook event, enqueue the response to be sent via the http response
+                    let outbound = context.turnState.get('httpBody');
+                    if (!outbound) {
+                        outbound = [];
+                    }
+                    outbound.push(message);
+                    context.turnState.set('httpBody', outbound);
                 }
-                outbound.push(message);
-                context.turnState.set('httpBody', outbound);
             }
-        }
-
-        return responses;
+            return responses;
+        });
     }
-
     /**
      * Web adapter does not support updateActivity.
      * @ignore
      */
     // eslint-disable-next-line
-    public async updateActivity(context: TurnContext, activity: Partial<Activity>): Promise<void> {
-        debug('Web adapter does not support updateActivity.');
+    updateActivity(context, activity) {
+        return __awaiter(this, void 0, void 0, function* () {
+            debug('Web adapter does not support updateActivity.');
+        });
     }
-
     /**
      * Web adapter does not support updateActivity.
      * @ignore
      */
     // eslint-disable-next-line
-    public async deleteActivity(context: TurnContext, reference: Partial<ConversationReference>): Promise<void> {
-        debug('Web adapter does not support deleteActivity.');
+    deleteActivity(context, reference) {
+        return __awaiter(this, void 0, void 0, function* () {
+            debug('Web adapter does not support deleteActivity.');
+        });
     }
-
     /**
      * Standard BotBuilder adapter method for continuing an existing conversation based on a conversation reference.
      * [BotBuilder reference docs](https://docs.microsoft.com/en-us/javascript/api/botbuilder-core/botadapter?view=botbuilder-ts-latest#continueconversation)
      * @param reference A conversation reference to be applied to future messages.
      * @param logic A bot logic function that will perform continuing action in the form `async(context) => { ... }`
      */
-    public async continueConversation(reference: Partial<ConversationReference>, logic: (context: TurnContext) => Promise<void>): Promise<void> {
-        const request = TurnContext.applyConversationReference(
-            { type: 'event', name: 'continueConversation' },
-            reference,
-            true
-        );
-        const context = new TurnContext(this, request);
-        return this.runMiddleware(context, logic)
-            .catch((err) => { console.error(err.toString()); });
+    continueConversation(reference, logic) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const request = botbuilder_1.TurnContext.applyConversationReference({ type: 'event', name: 'continueConversation' }, reference, true);
+            const context = new botbuilder_1.TurnContext(this, request);
+            return this.runMiddleware(context, logic)
+                .catch((err) => { console.error(err.toString()); });
+        });
     }
-
     /**
      * Accept an incoming webhook request and convert it into a TurnContext which can be processed by the bot's logic.
      * @param req A request object from Restify or Express
      * @param res A response object from Restify or Express
      * @param logic A bot logic function in the form `async(context) => { ... }`
      */
-    public async processActivity(req, res, logic: (context: TurnContext) => Promise<void>): Promise<void> {
-        const message = req.body;
-
-        const activity = {
-            timestamp: new Date(),
-            channelId: 'webhook',
-            conversation: {
-                id: message.user
-            },
-            from: {
-                id: message.user
-            },
-            recipient: {
-                id: 'bot'
-            },
-            channelData: message,
-            text: message.text,
-            type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
-        };
-
-        // set botkit's event type
-        if (activity.type !== ActivityTypes.Message) {
-            activity.channelData.botkitEventType = message.type;
-        }
-
-        // create a conversation reference
-        const context = new TurnContext(this, activity as Activity);
-
-        context.turnState.set('httpStatus', 200);
-
-        await this.runMiddleware(context, logic);
-
-        // send http response back
-        res.status(context.turnState.get('httpStatus'));
-        if (context.turnState.get('httpBody')) {
-            res.json(context.turnState.get('httpBody'));
-        } else {
-            res.end();
-        }
+    processActivity(req, res, logic) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const message = req.body;
+            const activity = {
+                timestamp: new Date(),
+                channelId: 'webhook',
+                conversation: {
+                    id: message.user
+                },
+                from: {
+                    id: message.user
+                },
+                recipient: {
+                    id: 'bot'
+                },
+                channelData: message,
+                text: message.text,
+                type: message.type === 'message' ? botbuilder_1.ActivityTypes.Message : botbuilder_1.ActivityTypes.Event
+            };
+            // set botkit's event type
+            if (activity.type !== botbuilder_1.ActivityTypes.Message) {
+                activity.channelData.botkitEventType = message.type;
+            }
+            // create a conversation reference
+            const context = new botbuilder_1.TurnContext(this, activity);
+            context.turnState.set('httpStatus', 200);
+            yield this.runMiddleware(context, logic);
+            // send http response back
+            res.status(context.turnState.get('httpStatus'));
+            if (context.turnState.get('httpBody')) {
+                res.json(context.turnState.get('httpBody'));
+            }
+            else {
+                res.end();
+            }
+        });
     }
-
     /**
      * Is given user currently connected? Use this to test the websocket connection
      * between the bot and a given user before sending messages,
@@ -442,19 +420,20 @@ export class WebAdapter extends BotAdapter {
      * Example: `bot.controller.adapter.isConnected(message.user)`
      * @param user the id of a user, typically from `message.user`
      */
-    public isConnected(user: string): boolean {
+    isConnected(user) {
         return typeof clients[user] !== 'undefined';
     }
-
     /**
      * Returns websocket connection of given user
      * Example: `if (message.action === 'disconnect') bot.controller.adapter.getConnection(message.user).terminate()`
      * @param user
      */
-    public getConnection(user: string): WebSocket {
+    getConnection(user) {
         if (!this.isConnected(user)) {
             throw new Error('User ' + user + ' is not connected');
         }
         return clients[user];
     }
 }
+exports.WebAdapter = WebAdapter;
+//# sourceMappingURL=web_adapter.js.map
