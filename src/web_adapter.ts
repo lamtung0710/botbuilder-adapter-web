@@ -17,6 +17,7 @@ const debug = Debug('botkit:web');
 
 const clients = {};
 const conversation = {};
+const room = {}
 
 /**
  * Connect [Botkit](https://www.npmjs.com/package/botkit) or [BotBuilder](https://www.npmjs.com/package/botbuilder) to the Web.
@@ -148,11 +149,12 @@ export class WebAdapter extends BotAdapter {
         this.wss.on('connection', (ws) => {
             ws.isAlive = true;
             ws.socketId = uuidv4();
+            ws.room = room;
             ws.on('pong', heartbeat);
-
             ws.on('message', async (payload) => {
                 try {
                     const message = JSON.parse(payload);
+                    console.log ('message', message);
                     if (_.get(message, 'type') == 'request') {
                         if (_.get(message, 'value') == 'join-conversation') {
                             if (!conversation[message.channelId]) {
@@ -178,7 +180,57 @@ export class WebAdapter extends BotAdapter {
                                 console.error('Could not send message, no open websocket found');
                             }
                         }
-                    }
+                    } else if (message.audienceId && message.botId) {
+                        // join ws
+                        ws.user = message.user;
+                        clients[message.user] = ws;
+                        // this stuff normally lives inside Botkit.congfigureWebhookEndpoint
+                        const activity = {
+                            timestamp: new Date(),
+                            channelId: 'websocket',
+                            conversation: {
+                                id: message.user
+                            },
+                            from: {
+                                id: message.user
+                            },
+                            recipient: {
+                                id: 'bot'
+                            },
+                            channelData: message,
+                            text: message.text,
+                            type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
+                        };
+                        
+                        ws.room = { audienceId: message.audienceId , botId: message.botId }
+                        // set botkit's event type
+                        if (activity.type !== ActivityTypes.Message) {
+                            activity.channelData.botkitEventType = message.type;
+                        }
+                        const context = new TurnContext(this, activity as Activity);
+                       
+                        //call to send Activities
+                        this.runMiddleware(context, logic)
+                            .catch((err) => { console.error(err.toString()); });
+                        
+                        if (conversation[message.user]) {
+                            
+                            for (const property in conversation[message.user]) {
+                                const ws = conversation[message.user][property];
+                                if (ws && ws.readyState === 1) {
+                                    try {
+                                        ws.send(JSON.stringify(message));
+                                    }
+                                    catch (err) {
+                                        console.error(err);
+                                    }
+                                }
+                                else {
+                                    console.error('Could not send message, no open websocket found');
+                                }
+                            }
+                        }    
+                    } 
                     else {
                         // note the websocket connection for this user
                         ws.user = message.user;
