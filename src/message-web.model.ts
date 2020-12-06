@@ -13,11 +13,6 @@ const botKitMessageWebSchema = new mongoose.Schema({
         required: true
     },
 
-    MessageFromBot: {
-        type: Boolean,
-        required: true
-    },
-
     BotId: {
         type: Number,
     },
