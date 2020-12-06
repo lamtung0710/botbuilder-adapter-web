@@ -264,8 +264,7 @@ export class WebAdapter extends BotAdapter {
                                 }
                             }
                         }    
-                    } 
-                    else {
+                    } else {
                         // note the websocket connection for this user
                         ws.user = message.user;
 
@@ -374,22 +373,37 @@ export class WebAdapter extends BotAdapter {
             if (channel === 'websocket') {
                 // If this turn originated with a websocket message, respond via websocket
                 const ws = clients[activity.recipient.id];
-                if (ws && ws.readyState === 1) {
-                    try {
-                        ws.send(JSON.stringify(message));
-                        message.user = activity.recipient.id;
-                        message.from = 'bot';
-                        message.recipient = message.user;
-                        this.sendMessage(message);
-                        if (message?.type === ActivityTypes.Message && message.text) {
-                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
+                    // multiple client 
+                    this.wss.clients.forEach(function each(ws) {
+                        if (ws && ws.readyState === 1) {
+                            if (JSON.stringify(ws.room) === JSON.stringify({ audienceId: context.activity.channelData.audienceId , botId: context.activity.channelData.botId})) {
+                                ws.send(JSON.stringify(message))
+                            }
+                            
+                        } else {
+                            console.error('Could not send message, no open websocket found');
                         }
-                    } catch (err) {
-                        console.error(err);
-                    }
+                    });
                 } else {
-                    console.error('Could not send message, no open websocket found');
+                    if (ws && ws.readyState === 1) {
+                        try {
+                            ws.send(JSON.stringify(message));
+                            message.user = activity.recipient.id;
+                            message.from = 'bot';
+                            message.recipient = message.user;
+                            this.sendMessage(message);
+                            if (message?.type === ActivityTypes.Message && message.text) {
+                                await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                            }
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    } else {
+                        console.error('Could not send message, no open websocket found');
+                    }
                 }
+                
             } else if (channel === 'webhook') {
                 // if this turn originated with a webhook event, enqueue the response to be sent via the http response
                 let outbound = context.turnState.get('httpBody');
