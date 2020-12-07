@@ -297,6 +297,7 @@ export class WebAdapter extends BotAdapter {
                             .catch((err) => { console.error(err.toString()); });
                         message.from = message.user;
                         message.recipient = 'bot';
+                        console.log('sendMessage222222')
                         this.sendMessage(message);
                         if (message.type === ActivityTypes.Message) {
                             await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
@@ -392,6 +393,7 @@ export class WebAdapter extends BotAdapter {
                             message.user = activity.recipient.id;
                             message.from = 'bot';
                             message.recipient = message.user;
+                            console.log('sendMessage1111111')
                             this.sendMessage(message);
                             if (message?.type === ActivityTypes.Message && message.text) {
                                 await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
