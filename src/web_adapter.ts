@@ -401,8 +401,8 @@ export class WebAdapter extends BotAdapter {
                                     "type": "message",
                                     "bot": true,
                                     "data": {
-                                        "Type": message.data?.messageType || 'text',
-                                        "Text": message.data?.text,
+                                        "Type": message.data?.Type || 'text',
+                                        "Text": message.data?.Text,
                                         "Buttons": []
                                     },
                                     "eventEmit": "received_message"
