@@ -396,7 +396,7 @@ export class WebAdapter extends BotAdapter {
                             message.recipient = message.user;
                             console.log('1111111111',message);
                             this.sendMessage(message);
-                            if (message?.type === ActivityTypes.Message && message.text) {
+                            if (message?.type === ActivityTypes.Message && message.data) {
                                 // const messageData = {
                                 //     "type": "message",
                                 //     "bot": true,
