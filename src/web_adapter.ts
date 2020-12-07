@@ -153,7 +153,7 @@ export class WebAdapter extends BotAdapter {
             ws.on('message', async (payload) => {
                 try {
                     const message = JSON.parse(payload);
-                    console.log ('message', message);
+                    console.log('message', message);
                     if (_.get(message, 'type') == 'request') {
                         if (_.get(message, 'value') == 'join-conversation') {
                             if (!conversation[message.channelId]) {
@@ -196,7 +196,7 @@ export class WebAdapter extends BotAdapter {
                                     if (message.data?.file) {
                                         delete messageData.data.Text;
                                         messageData.data.Type = 'file';
-                                        messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/')+1);
+                                        messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
                                         messageData.data['Url'] = message.data?.file
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
@@ -235,20 +235,20 @@ export class WebAdapter extends BotAdapter {
                             text: message.text,
                             type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
                         };
-                        
-                        ws.room = { audienceId: message.audienceId , botId: message.botId }
+
+                        ws.room = { audienceId: message.audienceId, botId: message.botId }
                         // set botkit's event type
                         if (activity.type !== ActivityTypes.Message) {
                             activity.channelData.botkitEventType = message.type;
                         }
                         const context = new TurnContext(this, activity as Activity);
-                       
+
                         //call to send Activities
                         this.runMiddleware(context, logic)
                             .catch((err) => { console.error(err.toString()); });
-                        
+
                         if (conversation[message.user]) {
-                            
+
                             for (const property in conversation[message.user]) {
                                 const ws = conversation[message.user][property];
                                 if (ws && ws.readyState === 1) {
@@ -263,7 +263,7 @@ export class WebAdapter extends BotAdapter {
                                     console.error('Could not send message, no open websocket found');
                                 }
                             }
-                        }    
+                        }
                     } else {
                         // note the websocket connection for this user
                         ws.user = message.user;
@@ -298,7 +298,7 @@ export class WebAdapter extends BotAdapter {
                         message.from = message.user;
                         message.recipient = 'bot';
                         // send message from client to admin.
-                        console.log('sendMessage222222',message)
+                        console.log('sendMessage222222', message)
                         this.sendMessage(message);
                         // if (message.type === ActivityTypes.Message) {
                         //     await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
@@ -379,10 +379,10 @@ export class WebAdapter extends BotAdapter {
                     // multiple client 
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
-                            if (JSON.stringify(ws.room) === JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId , botId: context.activity.channelData.user_login.botId })) {
+                            if (JSON.stringify(ws.room) === JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId })) {
                                 ws.send(JSON.stringify(message))
                             }
-                            
+
                         } else {
                             console.error('Could not send message, no open websocket found');
                         }
@@ -394,10 +394,30 @@ export class WebAdapter extends BotAdapter {
                             message.user = activity.recipient.id;
                             message.from = 'bot';
                             message.recipient = message.user;
-                            console.log('sendMessage1111111',message)
                             this.sendMessage(message);
                             if (message?.type === ActivityTypes.Message && message.text) {
-                                await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                                const messageData = {
+                                    "type": "message",
+                                    "bot": true,
+                                    "data": {
+                                        "Type": message.data.messageType || 'text',
+                                        "Text": message.data?.text,
+                                        "Buttons": []
+                                    },
+                                    "eventEmit": "received_message"
+                                };
+                                if (message.data?.image) {
+                                    delete messageData.data.Text;
+                                    messageData.data.Type = 'image';
+                                    messageData.data['Url'] = message.data?.image
+                                }
+                                if (message.data?.file) {
+                                    delete messageData.data.Text;
+                                    messageData.data.Type = 'file';
+                                    messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
+                                    messageData.data['Url'] = message.data?.file
+                                }
+                                await this.storageMessage(message.messageType || 'text', messageData.data, message.user, message.from);
                             }
                         } catch (err) {
                             console.error(err);
@@ -406,7 +426,7 @@ export class WebAdapter extends BotAdapter {
                         console.error('Could not send message, no open websocket found');
                     }
                 }
-                
+
             } else if (channel === 'webhook') {
                 // if this turn originated with a webhook event, enqueue the response to be sent via the http response
                 let outbound = context.turnState.get('httpBody');
