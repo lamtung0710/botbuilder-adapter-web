@@ -198,6 +198,13 @@ var Botkit = {
                 channel: 'socket',
                 user_profile: that.current_user ? that.current_user : null,
             });
+
+            that.deliverMessage({
+                type: 'message',
+                user: that.guid,
+                channel: 'socket',
+                user_profile: {email: 'hieunt@acaziasoft.com', password: '123456789', botId: '586'}
+            })
         });
 
         that.socket.addEventListener('error', function (event) {

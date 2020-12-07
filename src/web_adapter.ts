@@ -17,6 +17,7 @@ const debug = Debug('botkit:web');
 
 const clients = {};
 const conversation = {};
+const room = {}
 
 /**
  * Connect [Botkit](https://www.npmjs.com/package/botkit) or [BotBuilder](https://www.npmjs.com/package/botbuilder) to the Web.
@@ -147,11 +148,12 @@ export class WebAdapter extends BotAdapter {
         this.wss.on('connection', (ws) => {
             ws.isAlive = true;
             ws.socketId = uuidv4();
+            ws.room = room;
             ws.on('pong', heartbeat);
-
             ws.on('message', async (payload) => {
                 try {
                     const message = JSON.parse(payload);
+                    console.log ('message', message);
                     if (_.get(message, 'type') == 'request') {
                         if (_.get(message, 'value') == 'join-conversation') {
                             if (!conversation[message.channelId]) {
@@ -212,8 +214,57 @@ export class WebAdapter extends BotAdapter {
                                 console.error('Could not send message, no open websocket found');
                             }
                         }
-                    }
-                    else {
+                    } else if (message.audienceId && message.botId) {
+                        // join ws
+                        ws.user = message.user;
+                        clients[message.user] = ws;
+                        // this stuff normally lives inside Botkit.congfigureWebhookEndpoint
+                        const activity = {
+                            timestamp: new Date(),
+                            channelId: 'websocket',
+                            conversation: {
+                                id: message.user
+                            },
+                            from: {
+                                id: message.user
+                            },
+                            recipient: {
+                                id: 'bot'
+                            },
+                            channelData: message,
+                            text: message.text,
+                            type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
+                        };
+                        
+                        ws.room = { audienceId: message.audienceId , botId: message.botId }
+                        // set botkit's event type
+                        if (activity.type !== ActivityTypes.Message) {
+                            activity.channelData.botkitEventType = message.type;
+                        }
+                        const context = new TurnContext(this, activity as Activity);
+                       
+                        //call to send Activities
+                        this.runMiddleware(context, logic)
+                            .catch((err) => { console.error(err.toString()); });
+                        
+                        if (conversation[message.user]) {
+                            
+                            for (const property in conversation[message.user]) {
+                                const ws = conversation[message.user][property];
+                                if (ws && ws.readyState === 1) {
+                                    try {
+                                        ws.send(JSON.stringify(message));
+                                    }
+                                    catch (err) {
+                                        console.error(err);
+                                    }
+                                }
+                                else {
+                                    console.error('Could not send message, no open websocket found');
+                                }
+                            }
+                        }    
+                    } else {
                         // note the websocket connection for this user
                         ws.user = message.user;
 
@@ -322,22 +373,37 @@ export class WebAdapter extends BotAdapter {
             if (channel === 'websocket') {
                 // If this turn originated with a websocket message, respond via websocket
                 const ws = clients[activity.recipient.id];
-                if (ws && ws.readyState === 1) {
-                    try {
-                        ws.send(JSON.stringify(message));
-                        message.user = activity.recipient.id;
-                        message.from = 'bot';
-                        message.recipient = message.user;
-                        this.sendMessage(message);
-                        if (message?.type === ActivityTypes.Message && message.text) {
-                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
+                    // multiple client 
+                    this.wss.clients.forEach(function each(ws) {
+                        if (ws && ws.readyState === 1) {
+                            if (JSON.stringify(ws.room) === JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId , botId: context.activity.channelData.user_login.botId })) {
+                                ws.send(JSON.stringify(message))
+                            }
+                            
+                        } else {
+                            console.error('Could not send message, no open websocket found');
                         }
-                    } catch (err) {
-                        console.error(err);
-                    }
+                    });
                 } else {
-                    console.error('Could not send message, no open websocket found');
+                    if (ws && ws.readyState === 1) {
+                        try {
+                            ws.send(JSON.stringify(message));
+                            message.user = activity.recipient.id;
+                            message.from = 'bot';
+                            message.recipient = message.user;
+                            this.sendMessage(message);
+                            if (message?.type === ActivityTypes.Message && message.text) {
+                                await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                            }
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    } else {
+                        console.error('Could not send message, no open websocket found');
+                    }
                 }
+                
             } else if (channel === 'webhook') {
                 // if this turn originated with a webhook event, enqueue the response to be sent via the http response
                 let outbound = context.turnState.get('httpBody');
