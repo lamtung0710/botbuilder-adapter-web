@@ -417,7 +417,7 @@ export class WebAdapter extends BotAdapter {
                                     messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
                                     messageData.data['Url'] = message.data?.file
                                 }
-                                await this.storageMessage(message.messageType || 'text', messageData.data, message.user, message.from);
+                                await this.storageMessage(messageData.data.Type || 'text', messageData.data, message.user, message.from);
                             }
                         } catch (err) {
                             console.error(err);
