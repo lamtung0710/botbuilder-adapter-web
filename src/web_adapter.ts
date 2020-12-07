@@ -397,28 +397,28 @@ export class WebAdapter extends BotAdapter {
                             console.log('1111111111',message);
                             this.sendMessage(message);
                             if (message?.type === ActivityTypes.Message && message.text) {
-                                const messageData = {
-                                    "type": "message",
-                                    "bot": true,
-                                    "data": {
-                                        "Type": message.data?.Type || 'text',
-                                        "Text": message.data?.Text,
-                                        "Buttons": []
-                                    },
-                                    "eventEmit": "received_message"
-                                };
-                                if (message.data?.image) {
-                                    delete messageData.data.Text;
-                                    messageData.data.Type = 'image';
-                                    messageData.data['Url'] = message.data?.image
-                                }
-                                if (message.data?.file) {
-                                    delete messageData.data.Text;
-                                    messageData.data.Type = 'file';
-                                    messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
-                                    messageData.data['Url'] = message.data?.file
-                                }
-                                await this.storageMessage(messageData.data.Type || 'text', messageData.data, message.user, message.from);
+                                // const messageData = {
+                                //     "type": "message",
+                                //     "bot": true,
+                                //     "data": {
+                                //         "Type": message.data?.Type || 'text',
+                                //         "Text": message.data?.Text,
+                                //         "Buttons": []
+                                //     },
+                                //     "eventEmit": "received_message"
+                                // };
+                                // if (message.data?.image) {
+                                //     delete messageData.data.Text;
+                                //     messageData.data.Type = 'image';
+                                //     messageData.data['Url'] = message.data?.image
+                                // }
+                                // if (message.data?.file) {
+                                //     delete messageData.data.Text;
+                                //     messageData.data.Type = 'file';
+                                //     messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
+                                //     messageData.data['Url'] = message.data?.file
+                                // }
+                                await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
                             }
                         } catch (err) {
                             console.error(err);
