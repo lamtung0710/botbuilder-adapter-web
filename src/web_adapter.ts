@@ -297,11 +297,12 @@ export class WebAdapter extends BotAdapter {
                             .catch((err) => { console.error(err.toString()); });
                         message.from = message.user;
                         message.recipient = 'bot';
-                        console.log('sendMessage222222')
+                        // send message from client to admin.
+                        console.log('sendMessage222222',message)
                         this.sendMessage(message);
-                        if (message.type === ActivityTypes.Message) {
-                            await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
-                        }
+                        // if (message.type === ActivityTypes.Message) {
+                        //     await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
+                        // }
                     }
                 } catch (e) {
                     const alert = [
@@ -393,7 +394,7 @@ export class WebAdapter extends BotAdapter {
                             message.user = activity.recipient.id;
                             message.from = 'bot';
                             message.recipient = message.user;
-                            console.log('sendMessage1111111')
+                            console.log('sendMessage1111111',message)
                             this.sendMessage(message);
                             if (message?.type === ActivityTypes.Message && message.text) {
                                 await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
