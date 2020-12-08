@@ -373,11 +373,18 @@ export class WebAdapter extends BotAdapter {
             if (channel === 'websocket') {
                 // If this turn originated with a websocket message, respond via websocket
                 const ws = clients[activity.recipient.id];
+                
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
                     // multiple client 
+                   
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
-                            if (JSON.stringify(ws.room) === JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId , botId: context.activity.channelData.user_login.botId })) {
+                            if (context.activity.channelData['user_login']) {
+                                if (JSON.stringify(ws.room) === (JSON.stringify({audienceId: context.activity.channelData.user_login.audienceId , botId: context.activity.channelData.user_login.botId}))) {
+                                    ws.send(JSON.stringify(message))
+                                }
+                            }
+                            else if (JSON.stringify(ws.room) === (JSON.stringify({audienceId: context.activity.channelData.audienceId , botId: context.activity.channelData.botId}))) {                         
                                 ws.send(JSON.stringify(message))
                             }
                             
@@ -386,20 +393,16 @@ export class WebAdapter extends BotAdapter {
                         }
                     });
                 } else {
+                  
                     if (ws && ws.readyState === 1) {
                         try {
                             ws.send(JSON.stringify(message));
-                            message.user = activity.recipient.id;
-                            message.from = 'bot';
-                            message.recipient = message.user;
-                            this.sendMessage(message);
-                            if (message?.type === ActivityTypes.Message && message.text) {
-                                await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
-                            }
-                        } catch (err) {
+                        }
+                        catch (err) {
                             console.error(err);
                         }
-                    } else {
+                    }
+                    else {
                         console.error('Could not send message, no open websocket found');
                     }
                 }
