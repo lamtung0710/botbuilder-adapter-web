@@ -300,7 +300,7 @@ export class WebAdapter extends BotAdapter {
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
                         this.sendMessage(message);
-                        if (message?.type === ActivityTypes.Message && message?.data.type) {
+                        if (message?.type === ActivityTypes.Message && message?.data.Type) {
                             await this.storageMessage(message.messageType || 'text', message.data, message.user, message.from);
                         }
                     }
@@ -404,7 +404,7 @@ export class WebAdapter extends BotAdapter {
                             message.recipient = message.user;
                             console.log('1111111111',message);
                             this.sendMessage(message);
-                            if (message?.type === ActivityTypes.Message && message?.data.type) {
+                            if (message?.type === ActivityTypes.Message && message?.data.Type) {
                                 await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
                             }
                         } catch (err) {
