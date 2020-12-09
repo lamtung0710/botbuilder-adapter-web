@@ -321,7 +321,7 @@ export class WebAdapter extends BotAdapter {
                             messageData.data['FileName'] = message?.fileName || message.data?.file.substring(message?.file.lastIndexOf('/') + 1);
                             messageData.data['Url'] = message?.file
                         }
-                        if (message?.type === ActivityTypes.Message && message?.data.Type) {
+                        if (message?.type === ActivityTypes.Message) {
                             await this.storageMessage(message.type || 'text', messageData, message?.user, message?.from);
                         }
                     }
