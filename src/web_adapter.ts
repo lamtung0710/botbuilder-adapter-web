@@ -322,7 +322,7 @@ export class WebAdapter extends BotAdapter {
                             messageData.data['Url'] = message?.file
                         }
                         if (message?.type === ActivityTypes.Message) {
-                            await this.storageMessage(message.type || 'text', messageData, message?.user, message?.from);
+                            await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
                         }
                     }
                 } catch (e) {
