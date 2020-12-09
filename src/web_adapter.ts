@@ -300,9 +300,9 @@ export class WebAdapter extends BotAdapter {
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
                         this.sendMessage(message);
-                        // if (message.type === ActivityTypes.Message) {
-                        //     await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
-                        // }
+                        if (message?.type === ActivityTypes.Message && message?.data.type) {
+                            await this.storageMessage(message.messageType || 'text', message.data, message.user, message.from);
+                        }
                     }
                 } catch (e) {
                     const alert = [
@@ -404,28 +404,7 @@ export class WebAdapter extends BotAdapter {
                             message.recipient = message.user;
                             console.log('1111111111',message);
                             this.sendMessage(message);
-                            if (message?.type === ActivityTypes.Message && message.data) {
-                                // const messageData = {
-                                //     "type": "message",
-                                //     "bot": true,
-                                //     "data": {
-                                //         "Type": message.data?.Type || 'text',
-                                //         "Text": message.data?.Text,
-                                //         "Buttons": []
-                                //     },
-                                //     "eventEmit": "received_message"
-                                // };
-                                // if (message.data?.image) {
-                                //     delete messageData.data.Text;
-                                //     messageData.data.Type = 'image';
-                                //     messageData.data['Url'] = message.data?.image
-                                // }
-                                // if (message.data?.file) {
-                                //     delete messageData.data.Text;
-                                //     messageData.data.Type = 'file';
-                                //     messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
-                                //     messageData.data['Url'] = message.data?.file
-                                // }
+                            if (message?.type === ActivityTypes.Message && message?.data.type) {
                                 await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
                             }
                         } catch (err) {
