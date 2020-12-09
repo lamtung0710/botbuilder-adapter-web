@@ -300,8 +300,29 @@ export class WebAdapter extends BotAdapter {
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
                         this.sendMessage(message);
+                        const messageData = {
+                            "type": "message",
+                            "bot": true,
+                            "data": {
+                                "Type": message.data.messageType || 'text',
+                                "Text": message.data?.text,
+                                "Buttons": []
+                            },
+                            "eventEmit": "received_message"
+                        };
+                        if (message.data?.image) {
+                            delete messageData.data.Text;
+                            messageData.data.Type = 'image';
+                            messageData.data['Url'] = message.data?.image
+                        }
+                        if (message.data?.file) {
+                            delete messageData.data.Text;
+                            messageData.data.Type = 'file';
+                            messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
+                            messageData.data['Url'] = message.data?.file
+                        }
                         if (message?.type === ActivityTypes.Message && message?.data.Type) {
-                            await this.storageMessage(message.messageType || 'text', message.data, message.user, message.from);
+                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
                         }
                     }
                 } catch (e) {
@@ -399,14 +420,14 @@ export class WebAdapter extends BotAdapter {
                     if (ws && ws.readyState === 1) {
                         try {
                             ws.send(JSON.stringify(message));
-                            message.user = activity.recipient.id;
-                            message.from = 'bot';
-                            message.recipient = message.user;
-                            console.log('1111111111',message);
+                            // message.user = activity.recipient.id;
+                            // message.from = 'bot';
+                            // message.recipient = message.user;
+                            // console.log('1111111111',message);
                             this.sendMessage(message);
-                            if (message?.type === ActivityTypes.Message && message?.data.Type) {
-                                await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
-                            }
+                            // if (message?.type === ActivityTypes.Message && message?.data.Type) {
+                            //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
+                            // }
                         } catch (err) {
                             console.error(err);
                         }
