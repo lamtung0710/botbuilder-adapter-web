@@ -180,7 +180,7 @@ export class WebAdapter extends BotAdapter {
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
                                         if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
                                         }
                                     }
                                     if (message.data?.image) {
@@ -190,7 +190,7 @@ export class WebAdapter extends BotAdapter {
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
                                         if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
                                         }
                                     }
                                     if (message.data?.file) {
@@ -201,7 +201,7 @@ export class WebAdapter extends BotAdapter {
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
                                         if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
                                         }
                                     }
 
@@ -322,7 +322,7 @@ export class WebAdapter extends BotAdapter {
                             messageData.data['Url'] = message.data?.file
                         }
                         if (message?.type === ActivityTypes.Message && message?.data.Type) {
-                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                            await this.storageMessage(message.data.type || 'text', messageData, message.data?.user, message.data?.from);
                         }
                     }
                 } catch (e) {
