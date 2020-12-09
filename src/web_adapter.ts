@@ -304,8 +304,8 @@ export class WebAdapter extends BotAdapter {
                             "type": "message",
                             "bot": true,
                             "data": {
-                                "Type": message?.data.messageType || 'text',
-                                "Text": message?.data?.text || message.text,
+                                "Type": 'text',
+                                "Text": message.text,
                                 "Buttons": []
                             },
                             "eventEmit": "received_message"
@@ -396,18 +396,18 @@ export class WebAdapter extends BotAdapter {
             if (channel === 'websocket') {
                 // If this turn originated with a websocket message, respond via websocket
                 const ws = clients[activity.recipient.id];
-                
+
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
                     // multiple client 
-                   
+
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
-                                if (JSON.stringify(ws.room) === (JSON.stringify({audienceId: context.activity.channelData.user_login.audienceId , botId: context.activity.channelData.user_login.botId}))) {
+                                if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
                                 }
                             }
-                            else if (JSON.stringify(ws.room) === (JSON.stringify({audienceId: context.activity.channelData.audienceId , botId: context.activity.channelData.botId}))) {                         
+                            else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
                             }
 
@@ -416,7 +416,7 @@ export class WebAdapter extends BotAdapter {
                         }
                     });
                 } else {
-                  
+
                     if (ws && ws.readyState === 1) {
                         try {
                             ws.send(JSON.stringify(message));
