@@ -304,8 +304,8 @@ export class WebAdapter extends BotAdapter {
                             "type": "message",
                             "bot": true,
                             "data": {
-                                "Type": message.data.messageType || 'text',
-                                "Text": message.data?.text,
+                                "Type": message?.data.messageType || 'text',
+                                "Text": message?.data?.text || message.text,
                                 "Buttons": []
                             },
                             "eventEmit": "received_message"
@@ -313,16 +313,16 @@ export class WebAdapter extends BotAdapter {
                         if (message.data?.image) {
                             delete messageData.data.Text;
                             messageData.data.Type = 'image';
-                            messageData.data['Url'] = message.data?.image
+                            messageData.data['Url'] = message?.image
                         }
                         if (message.data?.file) {
                             delete messageData.data.Text;
                             messageData.data.Type = 'file';
-                            messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
-                            messageData.data['Url'] = message.data?.file
+                            messageData.data['FileName'] = message?.fileName || message.data?.file.substring(message?.file.lastIndexOf('/') + 1);
+                            messageData.data['Url'] = message?.file
                         }
                         if (message?.type === ActivityTypes.Message && message?.data.Type) {
-                            await this.storageMessage(message.data.type || 'text', messageData, message.data?.user, message.data?.from);
+                            await this.storageMessage(message.type || 'text', messageData, message?.user, message?.from);
                         }
                     }
                 } catch (e) {
