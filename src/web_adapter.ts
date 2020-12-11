@@ -299,7 +299,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = 'bot';
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
-                        this.sendMessage(message);
+                      
                         const messageData = {
                             "type": "message",
                             "bot": true,
@@ -321,6 +321,7 @@ export class WebAdapter extends BotAdapter {
                             messageData.data['FileName'] = message?.fileName || message.data?.file.substring(message?.file.lastIndexOf('/') + 1);
                             messageData.data['Url'] = message?.file
                         }
+                        this.sendMessage(messageData);
                         if (message?.type === ActivityTypes.Message) {
                             await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
                         }
