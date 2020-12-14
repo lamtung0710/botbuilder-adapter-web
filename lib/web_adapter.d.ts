@@ -121,5 +121,5 @@ export declare class WebAdapter extends BotAdapter {
      * @param user
      */
     getConnection(user: string): WebSocket;
-    getHistory: (ChannelId: any, skip: any, limit: any) => any;
+    getHistory: (ChannelId: any, skip: any, limit: any) => Promise<any>;
 }

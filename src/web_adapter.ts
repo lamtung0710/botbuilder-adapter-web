@@ -559,7 +559,7 @@ export class WebAdapter extends BotAdapter {
         }
         return clients[user];
     }
-    public getHistory = (ChannelId, skip, limit) => {
-        return MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
+    public getHistory = async (ChannelId, skip, limit)  => {
+        return await MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit).reverse();
     }
 }
