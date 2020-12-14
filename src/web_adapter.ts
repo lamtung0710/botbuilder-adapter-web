@@ -303,7 +303,7 @@ export class WebAdapter extends BotAdapter {
                       
                         const messageData = {
                             "type": "message",
-                            "bot": true,
+                            "bot": false,
                             "data": {
                                 "Type": 'text',
                                 "Text": message.text,
