@@ -108,6 +108,7 @@ export class WebAdapter extends BotAdapter {
     private sendMessage(message) {
         try {
             if (conversation[message.user]) {
+                console.log('sendMessage', conversation);
                 for (const property in conversation[message.user]) {
                     const ws = conversation[message.user][property];
                     if (ws && ws.readyState === 1) {
