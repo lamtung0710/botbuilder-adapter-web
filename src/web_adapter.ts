@@ -108,6 +108,7 @@ export class WebAdapter extends BotAdapter {
     private sendMessage(message) {
         try {
             if (conversation[message.user]) {
+                console.log('sendMessage', conversation);
                 for (const property in conversation[message.user]) {
                     const ws = conversation[message.user][property];
                     if (ws && ws.readyState === 1) {
@@ -180,7 +181,7 @@ export class WebAdapter extends BotAdapter {
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
                                         if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
                                         }
                                     }
                                     if (message.data?.image) {
@@ -190,7 +191,7 @@ export class WebAdapter extends BotAdapter {
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
                                         if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
                                         }
                                     }
                                     if (message.data?.file) {
@@ -201,7 +202,7 @@ export class WebAdapter extends BotAdapter {
                                         userWs.send(JSON.stringify(messageData));
                                         ws.send(JSON.stringify(messageData))
                                         if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.messageType || 'text', messageData, message.data?.user, message.data?.from);
+                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
                                         }
                                     }
 
@@ -299,10 +300,33 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = 'bot';
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
-                        this.sendMessage(message);
-                        // if (message.type === ActivityTypes.Message) {
-                        //     await this.storageMessage(message.messageType || 'text', message, message.user, message.from);
-                        // }
+                      
+                        const messageData = {
+                            "type": "message",
+                            "bot": false,
+                            "data": {
+                                "Type": 'text',
+                                "Text": message.text,
+                                "Buttons": []
+                            },
+                            "eventEmit": "received_message"
+                        };
+                        if (message.data?.image) {
+                            delete messageData.data.Text;
+                            messageData.data.Type = 'image';
+                            messageData.data['Url'] = message?.image
+                        }
+                        if (message.data?.file) {
+                            delete messageData.data.Text;
+                            messageData.data.Type = 'file';
+                            messageData.data['FileName'] = message?.fileName || message.data?.file.substring(message?.file.lastIndexOf('/') + 1);
+                            messageData.data['Url'] = message?.file
+                        }
+                        messageData['user'] = message.user;
+                        this.sendMessage(messageData);
+                        if (message?.type === ActivityTypes.Message) {
+                            await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
+                        }
                     }
                 } catch (e) {
                     const alert = [
@@ -386,11 +410,11 @@ export class WebAdapter extends BotAdapter {
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
-                                if (JSON.stringify(ws.room) === (JSON.stringify({audienceId: context.activity.channelData.user_login.audienceId , botId: context.activity.channelData.user_login.botId}))) {
+                                if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
                                 }
                             }
-                            else if (JSON.stringify(ws.room) === (JSON.stringify({audienceId: context.activity.channelData.audienceId , botId: context.activity.channelData.botId}))) {                         
+                            else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
                             }
 
@@ -399,39 +423,18 @@ export class WebAdapter extends BotAdapter {
                         }
                     });
                 } else {
-                  
+
                     if (ws && ws.readyState === 1) {
                         try {
                             ws.send(JSON.stringify(message));
-                            message.user = activity.recipient.id;
-                            message.from = 'bot';
-                            message.recipient = message.user;
-                            console.log('1111111111',message);
+                            // message.user = activity.recipient.id;
+                            // message.from = 'bot';
+                            // message.recipient = message.user;
+                            // console.log('1111111111',message);
                             this.sendMessage(message);
-                            if (message?.type === ActivityTypes.Message && message.data) {
-                                // const messageData = {
-                                //     "type": "message",
-                                //     "bot": true,
-                                //     "data": {
-                                //         "Type": message.data?.Type || 'text',
-                                //         "Text": message.data?.Text,
-                                //         "Buttons": []
-                                //     },
-                                //     "eventEmit": "received_message"
-                                // };
-                                // if (message.data?.image) {
-                                //     delete messageData.data.Text;
-                                //     messageData.data.Type = 'image';
-                                //     messageData.data['Url'] = message.data?.image
-                                // }
-                                // if (message.data?.file) {
-                                //     delete messageData.data.Text;
-                                //     messageData.data.Type = 'file';
-                                //     messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
-                                //     messageData.data['Url'] = message.data?.file
-                                // }
-                                await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
-                            }
+                            // if (message?.type === ActivityTypes.Message && message?.data.Type) {
+                            //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
+                            // }
                         } catch (err) {
                             console.error(err);
                         }
@@ -559,5 +562,8 @@ export class WebAdapter extends BotAdapter {
             throw new Error('User ' + user + ' is not connected');
         }
         return clients[user];
+    }
+    public getHistory = (ChannelId, skip, limit) => {
+        return  MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
     }
 }
