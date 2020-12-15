@@ -399,10 +399,14 @@ export class WebAdapter extends BotAdapter {
             if (channel === 'websocket') {
                 // If this turn originated with a websocket message, respond via websocket
                 const ws = clients[activity.recipient.id];
+                //delete room when user logout
+                if (context.activity.channelData.type == 'logout') {
+                    delete ws['room']['audienceId']
+                    delete ws['room']['botId']
+                }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
                     // multiple client 
-
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
