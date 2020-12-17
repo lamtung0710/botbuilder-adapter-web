@@ -490,11 +490,11 @@ export class WebAdapter extends BotAdapter {
                             // message.user = activity.recipient.id;
                             // message.from = 'bot';
                             // message.recipient = message.user;
-                            console.log('1111111111', message);
-                            // if (message.data) {
-                            //     console.log('1111111111', message);
-                            //     this.sendMessage(message);
-                            // }
+                            if (message.data && message.eventEmit === 'received_message') {
+                                message.user = ws.user;
+                                this.sendMessage(message);
+                                 await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
+                            }
                             // if (message?.type === ActivityTypes.Message && message?.data.Type) {
                             //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
                             // }
