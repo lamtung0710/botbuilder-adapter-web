@@ -457,7 +457,7 @@ export class WebAdapter extends BotAdapter {
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
                     // multiple client 
-                    this.wss.clients.forEach(function each(ws) {
+                    this.wss.clients.forEach(ws=> {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
