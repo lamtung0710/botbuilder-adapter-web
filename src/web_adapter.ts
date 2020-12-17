@@ -13,6 +13,8 @@ import { v4 as uuidv4 } from 'uuid';
 import * as _ from 'lodash';
 import * as mongoose from 'mongoose';
 import MessageWeb from './message-web.model';
+
+
 const debug = Debug('botkit:web');
 
 const clients = {};
@@ -215,6 +217,7 @@ export class WebAdapter extends BotAdapter {
                                 console.error('Could not send message, no open websocket found');
                             }
                         }
+
                     } else if (message['audienceId'] && message['botId']) {
                         // join ws
                         ws.user = message.user;
