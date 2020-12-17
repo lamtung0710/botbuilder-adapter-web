@@ -462,6 +462,7 @@ export class WebAdapter extends BotAdapter {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
                                     if (message.data && message.eventEmit === 'received_message') {
+                                        message.user = ws.user;
                                         this.sendMessage(message);
                                         await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
                                     }
@@ -470,8 +471,9 @@ export class WebAdapter extends BotAdapter {
                             else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
                                 if (message.data && message.eventEmit === 'received_message') {
+                                    message.user = ws.user;
                                     this.sendMessage(message);
-                                    await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
+                                     await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
                                 }
                             }
 
