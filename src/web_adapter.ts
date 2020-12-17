@@ -456,6 +456,7 @@ export class WebAdapter extends BotAdapter {
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
+                    console.log('ow the vao day ak');
                     // multiple client 
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
