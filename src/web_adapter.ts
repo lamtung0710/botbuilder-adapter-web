@@ -464,7 +464,7 @@ export class WebAdapter extends BotAdapter {
                                     if (message.data && message.eventEmit === 'received_message') {
                                         message.user = ws.user;
                                         this.sendMessage(message);
-                                        await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
+                                        await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
                                     }
                                 }
                             }
@@ -473,7 +473,7 @@ export class WebAdapter extends BotAdapter {
                                 if (message.data && message.eventEmit === 'received_message') {
                                     message.user = ws.user;
                                     this.sendMessage(message);
-                                     await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
+                                     await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
                                 }
                             }
 
