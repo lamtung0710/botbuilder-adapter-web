@@ -371,11 +371,11 @@ export class WebAdapter extends BotAdapter {
                             messageData.data['FileName'] = message?.fileName || message.data?.file.substring(message?.file.lastIndexOf('/') + 1);
                             messageData.data['Url'] = message?.file
                         }
-                        messageData['user'] = message.user;
-                        this.sendMessage(messageData);
-                        if (message?.type === ActivityTypes.Message) {
-                            await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
-                        }
+                        // messageData['user'] = message.user;
+                        // this.sendMessage(messageData);
+                        // if (message?.type === ActivityTypes.Message) {
+                        //     await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
+                        // }
                     }
                 } catch (e) {
                     const alert = [
