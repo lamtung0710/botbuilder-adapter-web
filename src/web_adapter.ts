@@ -108,7 +108,6 @@ export class WebAdapter extends BotAdapter {
     private sendMessage(message) {
         try {
             if (conversation[message.user]) {
-                console.log('sendMessage', conversation);
                 for (const property in conversation[message.user]) {
                     const ws = conversation[message.user][property];
                     if (ws && ws.readyState === 1) {
@@ -457,22 +456,22 @@ export class WebAdapter extends BotAdapter {
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
                     // multiple client 
-                    this.wss.clients.forEach(ws=> {
+                    this.wss.clients.forEach(async ws => {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
-                                    if (message.data) {
-                                        console.log('1111111111', message);
+                                    if (message.data && message.eventEmit === 'received_message') {
                                         this.sendMessage(message);
+                                        await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
                                     }
                                 }
                             }
                             else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
-                                if (message.data) {
-                                    console.log('1111111111', message);
+                                if (message.data && message.eventEmit === 'received_message') {
                                     this.sendMessage(message);
+                                    await this.storageMessage(message.data.Type || 'text', message.data, ws.user, 'bot');
                                 }
                             }
 
