@@ -455,6 +455,7 @@ export class WebAdapter extends BotAdapter {
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
+                    console.log('audienceId',message);
                     // multiple client 
                     this.wss.clients.forEach(async ws => {
                         if (ws && ws.readyState === 1) {
@@ -489,10 +490,11 @@ export class WebAdapter extends BotAdapter {
                             // message.user = activity.recipient.id;
                             // message.from = 'bot';
                             // message.recipient = message.user;
-                            if (message.data) {
-                                console.log('1111111111', message);
-                                this.sendMessage(message);
-                            }
+                            console.log('1111111111', message);
+                            // if (message.data) {
+                            //     console.log('1111111111', message);
+                            //     this.sendMessage(message);
+                            // }
                             // if (message?.type === ActivityTypes.Message && message?.data.Type) {
                             //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
                             // }
