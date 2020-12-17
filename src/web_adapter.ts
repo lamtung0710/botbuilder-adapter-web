@@ -287,7 +287,7 @@ export class WebAdapter extends BotAdapter {
                             type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
                         };
 
-                        ws.room = { audienceId: message['user_login']['audienceId'] , botId: message['user_login']['botId'] }
+                        ws.room = { audienceId: message['user_login']['audienceId'], botId: message['user_login']['botId'] }
                         // set botkit's event type
                         if (activity.type !== ActivityTypes.Message) {
                             activity.channelData.botkitEventType = message.type;
@@ -315,7 +315,7 @@ export class WebAdapter extends BotAdapter {
                                 }
                             }
                         }
-                    } else{
+                    } else {
                         // note the websocket connection for this user
                         ws.user = message.user;
 
@@ -350,7 +350,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = 'bot';
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
-                      
+
                         const messageData = {
                             "type": "message",
                             "bot": false,
@@ -456,17 +456,24 @@ export class WebAdapter extends BotAdapter {
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
-                    console.log('ow the vao day ak');
                     // multiple client 
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
+                                    if (message.data) {
+                                        console.log('1111111111', message);
+                                        this.sendMessage(message);
+                                    }
                                 }
                             }
                             else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
+                                if (message.data) {
+                                    console.log('1111111111', message);
+                                    this.sendMessage(message);
+                                }
                             }
 
                         } else {
@@ -481,9 +488,9 @@ export class WebAdapter extends BotAdapter {
                             // message.user = activity.recipient.id;
                             // message.from = 'bot';
                             // message.recipient = message.user;
-                            if(message.data){
-                            console.log('1111111111',message);
-                            this.sendMessage(message);
+                            if (message.data) {
+                                console.log('1111111111', message);
+                                this.sendMessage(message);
                             }
                             // if (message?.type === ActivityTypes.Message && message?.data.Type) {
                             //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
@@ -617,6 +624,6 @@ export class WebAdapter extends BotAdapter {
         return clients[user];
     }
     public getHistory = (ChannelId, skip, limit) => {
-        return  MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
+        return MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
     }
 }
