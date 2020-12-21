@@ -110,7 +110,6 @@ export class WebAdapter extends BotAdapter {
     private sendMessage(message) {
         try {
             if (conversation[message.user]) {
-                console.log('sendMessage', conversation);
                 for (const property in conversation[message.user]) {
                     const ws = conversation[message.user][property];
                     if (ws && ws.readyState === 1) {
@@ -158,67 +157,67 @@ export class WebAdapter extends BotAdapter {
                     const message = JSON.parse(payload);
                     console.log('message', message);
                     if (_.get(message, 'type') == 'request') {
-                        if (_.get(message, 'value') == 'join-conversation') {
-                            if (!conversation[message.channelId]) {
-                                conversation[message.channelId] = { [ws.socketId]: ws }
-                            }
-                            conversation[message.channelId][ws.socketId] = ws;
-                            ws.send(JSON.stringify({ type: ActivityTypes.Message, text: 'You are already in the conversation!' }))
-                        }
-                        if (_.get(message, 'value') == 'message' && message?.data) {
-                            const userWs = clients[message.data?.user];
-                            if (userWs && userWs.readyState === 1) {
-                                try {
-                                    const messageData = {
-                                        "type": "message",
-                                        "bot": true,
-                                        "data": {
-                                            "Type": message.data.messageType || 'text',
-                                            "Text": message.data?.text,
-                                            "Buttons": []
-                                        },
-                                        "eventEmit": "received_message"
-                                    };
-                                    if (message.data?.text) {
-                                        userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
-                                        }
-                                    }
-                                    if (message.data?.image) {
-                                        delete messageData.data.Text;
-                                        messageData.data.Type = 'image';
-                                        messageData.data['Url'] = message.data?.image
-                                        userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
-                                        }
-                                    }
-                                    if (message.data?.file) {
-                                        delete messageData.data.Text;
-                                        messageData.data.Type = 'file';
-                                        messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
-                                        messageData.data['Url'] = message.data?.file
-                                        userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
-                                        }
-                                    }
+                        // if (_.get(message, 'value') == 'join-conversation') {
+                        //     if (!conversation[message.channelId]) {
+                        //         conversation[message.channelId] = { [ws.socketId]: ws }
+                        //     }
+                        //     conversation[message.channelId][ws.socketId] = ws;
+                        //     ws.send(JSON.stringify({ type: ActivityTypes.Message, text: 'You are already in the conversation!' }))
+                        // }
+                        // if (_.get(message, 'value') == 'message' && message?.data) {
+                        //     const userWs = clients[message.data?.user];
+                        //     if (userWs && userWs.readyState === 1) {
+                        //         try {
+                        //             const messageData = {
+                        //                 "type": "message",
+                        //                 "bot": true,
+                        //                 "data": {
+                        //                     "Type": message.data.messageType || 'text',
+                        //                     "Text": message.data?.text,
+                        //                     "Buttons": []
+                        //                 },
+                        //                 "eventEmit": "received_message"
+                        //             };
+                        //             if (message.data?.text) {
+                        //                 userWs.send(JSON.stringify(messageData));
+                        //                 ws.send(JSON.stringify(messageData))
+                        //                 if (message?.data?.type === ActivityTypes.Message) {
+                        //                     await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
+                        //                 }
+                        //             }
+                        //             if (message.data?.image) {
+                        //                 delete messageData.data.Text;
+                        //                 messageData.data.Type = 'image';
+                        //                 messageData.data['Url'] = message.data?.image
+                        //                 userWs.send(JSON.stringify(messageData));
+                        //                 ws.send(JSON.stringify(messageData))
+                        //                 if (message?.data?.type === ActivityTypes.Message) {
+                        //                     await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
+                        //                 }
+                        //             }
+                        //             if (message.data?.file) {
+                        //                 delete messageData.data.Text;
+                        //                 messageData.data.Type = 'file';
+                        //                 messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
+                        //                 messageData.data['Url'] = message.data?.file
+                        //                 userWs.send(JSON.stringify(messageData));
+                        //                 ws.send(JSON.stringify(messageData))
+                        //                 if (message?.data?.type === ActivityTypes.Message) {
+                        //                     await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
+                        //                 }
+                        //             }
 
-                                }
-                                catch (err) {
-                                    console.error(err);
-                                }
-                            }
-                            else {
-                                console.error('Could not send message, no open websocket found');
-                            }
-                        }
+                        //         }
+                        //         catch (err) {
+                        //             console.error(err);
+                        //         }
+                        //     }
+                        //     else {
+                        //         console.error('Could not send message, no open websocket found');
+                        //     }
+                        // }
 
-                    } else if (message['audienceId'] && message['botId']) {
+                    } else if (message['audienceId'] && message['botId'] || message['choose_flow'] == true || message['join_conversation'] == true) {
                         // join ws
                         ws.user = message.user;
                         clients[message.user] = ws;
@@ -290,7 +289,7 @@ export class WebAdapter extends BotAdapter {
                             type: message.type === 'message' ? ActivityTypes.Message : ActivityTypes.Event
                         };
 
-                        ws.room = { audienceId: message['user_login']['audienceId'] , botId: message['user_login']['botId'] }
+                        ws.room = { audienceId: message['user_login']['audienceId'], botId: message['user_login']['botId'] }
                         // set botkit's event type
                         if (activity.type !== ActivityTypes.Message) {
                             activity.channelData.botkitEventType = message.type;
@@ -318,7 +317,7 @@ export class WebAdapter extends BotAdapter {
                                 }
                             }
                         }
-                    } else{
+                    } else {
                         // note the websocket connection for this user
                         ws.user = message.user;
 
@@ -353,7 +352,7 @@ export class WebAdapter extends BotAdapter {
                         message.recipient = 'bot';
                         // send message from client to admin.
                         console.log('sendMessage222222', message)
-                      
+
                         const messageData = {
                             "type": "message",
                             "bot": false,
@@ -375,11 +374,11 @@ export class WebAdapter extends BotAdapter {
                             messageData.data['FileName'] = message?.fileName || message.data?.file.substring(message?.file.lastIndexOf('/') + 1);
                             messageData.data['Url'] = message?.file
                         }
-                        messageData['user'] = message.user;
-                        this.sendMessage(messageData);
-                        if (message?.type === ActivityTypes.Message) {
-                            await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
-                        }
+                        // messageData['user'] = message.user;
+                        // this.sendMessage(messageData);
+                        // if (message?.type === ActivityTypes.Message) {
+                        //     await this.storageMessage(messageData.data.Type || 'text', messageData, message?.user, message?.from);
+                        // }
                     }
                 } catch (e) {
                     const alert = [
@@ -459,16 +458,27 @@ export class WebAdapter extends BotAdapter {
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
+                   
                     // multiple client 
-                    this.wss.clients.forEach(function each(ws) {
+                    this.wss.clients.forEach(async ws => {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
+                                    // if (message.data && message.eventEmit === 'received_message') {
+                                    //     message.user = ws.user;
+                                    //     this.sendMessage(message);
+                                    //     await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
+                                    // }
                                 }
                             }
                             else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
+                                // if (message.data && message.eventEmit === 'received_message') {
+                                //     message.user = ws.user;
+                                //     this.sendMessage(message);
+                                //      await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
+                                // }
                             }
 
                         } else {
@@ -483,8 +493,11 @@ export class WebAdapter extends BotAdapter {
                             // message.user = activity.recipient.id;
                             // message.from = 'bot';
                             // message.recipient = message.user;
-                            // console.log('1111111111',message);
-                            this.sendMessage(message);
+                            if (message.data && message.eventEmit === 'received_message') {
+                                message.user = ws.user;
+                                this.sendMessage(message);
+                                 await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
+                            }
                             // if (message?.type === ActivityTypes.Message && message?.data.Type) {
                             //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
                             // }
@@ -617,6 +630,6 @@ export class WebAdapter extends BotAdapter {
         return clients[user];
     }
     public getHistory = (ChannelId, skip, limit) => {
-        return  MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
+        return MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
     }
 }
