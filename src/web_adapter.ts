@@ -13,6 +13,8 @@ import { v4 as uuidv4 } from 'uuid';
 import * as _ from 'lodash';
 import * as mongoose from 'mongoose';
 import MessageWeb from './message-web.model';
+
+
 const debug = Debug('botkit:web');
 
 const clients = {};
@@ -155,66 +157,67 @@ export class WebAdapter extends BotAdapter {
                     const message = JSON.parse(payload);
                     console.log('message', message);
                     if (_.get(message, 'type') == 'request') {
-                        if (_.get(message, 'value') == 'join-conversation') {
-                            if (!conversation[message.channelId]) {
-                                conversation[message.channelId] = { [ws.socketId]: ws }
-                            }
-                            conversation[message.channelId][ws.socketId] = ws;
-                            ws.send(JSON.stringify({ type: ActivityTypes.Message, text: 'You are already in the conversation!' }))
-                        }
-                        if (_.get(message, 'value') == 'message' && message?.data) {
-                            const userWs = clients[message.data?.user];
-                            if (userWs && userWs.readyState === 1) {
-                                try {
-                                    const messageData = {
-                                        "type": "message",
-                                        "bot": true,
-                                        "data": {
-                                            "Type": message.data.messageType || 'text',
-                                            "Text": message.data?.text,
-                                            "Buttons": []
-                                        },
-                                        "eventEmit": "received_message"
-                                    };
-                                    if (message.data?.text) {
-                                        userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
-                                        }
-                                    }
-                                    if (message.data?.image) {
-                                        delete messageData.data.Text;
-                                        messageData.data.Type = 'image';
-                                        messageData.data['Url'] = message.data?.image
-                                        userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
-                                        }
-                                    }
-                                    if (message.data?.file) {
-                                        delete messageData.data.Text;
-                                        messageData.data.Type = 'file';
-                                        messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
-                                        messageData.data['Url'] = message.data?.file
-                                        userWs.send(JSON.stringify(messageData));
-                                        ws.send(JSON.stringify(messageData))
-                                        if (message?.data?.type === ActivityTypes.Message) {
-                                            await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
-                                        }
-                                    }
+                        // if (_.get(message, 'value') == 'join-conversation') {
+                        //     if (!conversation[message.channelId]) {
+                        //         conversation[message.channelId] = { [ws.socketId]: ws }
+                        //     }
+                        //     conversation[message.channelId][ws.socketId] = ws;
+                        //     ws.send(JSON.stringify({ type: ActivityTypes.Message, text: 'You are already in the conversation!' }))
+                        // }
+                        // if (_.get(message, 'value') == 'message' && message?.data) {
+                        //     const userWs = clients[message.data?.user];
+                        //     if (userWs && userWs.readyState === 1) {
+                        //         try {
+                        //             const messageData = {
+                        //                 "type": "message",
+                        //                 "bot": true,
+                        //                 "data": {
+                        //                     "Type": message.data.messageType || 'text',
+                        //                     "Text": message.data?.text,
+                        //                     "Buttons": []
+                        //                 },
+                        //                 "eventEmit": "received_message"
+                        //             };
+                        //             if (message.data?.text) {
+                        //                 userWs.send(JSON.stringify(messageData));
+                        //                 ws.send(JSON.stringify(messageData))
+                        //                 if (message?.data?.type === ActivityTypes.Message) {
+                        //                     await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
+                        //                 }
+                        //             }
+                        //             if (message.data?.image) {
+                        //                 delete messageData.data.Text;
+                        //                 messageData.data.Type = 'image';
+                        //                 messageData.data['Url'] = message.data?.image
+                        //                 userWs.send(JSON.stringify(messageData));
+                        //                 ws.send(JSON.stringify(messageData))
+                        //                 if (message?.data?.type === ActivityTypes.Message) {
+                        //                     await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
+                        //                 }
+                        //             }
+                        //             if (message.data?.file) {
+                        //                 delete messageData.data.Text;
+                        //                 messageData.data.Type = 'file';
+                        //                 messageData.data['FileName'] = message.data?.fileName || message.data?.file.substring(message.data?.file.lastIndexOf('/') + 1);
+                        //                 messageData.data['Url'] = message.data?.file
+                        //                 userWs.send(JSON.stringify(messageData));
+                        //                 ws.send(JSON.stringify(messageData))
+                        //                 if (message?.data?.type === ActivityTypes.Message) {
+                        //                     await this.storageMessage(message.data.Type || 'text', messageData, message.data?.user, message.data?.from);
+                        //                 }
+                        //             }
 
-                                }
-                                catch (err) {
-                                    console.error(err);
-                                }
-                            }
-                            else {
-                                console.error('Could not send message, no open websocket found');
-                            }
-                        }
-                    } else if (message['audienceId'] && message['botId']) {
+                        //         }
+                        //         catch (err) {
+                        //             console.error(err);
+                        //         }
+                        //     }
+                        //     else {
+                        //         console.error('Could not send message, no open websocket found');
+                        //     }
+                        // }
+
+                    } else if (message['audienceId'] && message['botId'] || message['choose_flow'] == true || message['join_conversation'] == true) {
                         // join ws
                         ws.user = message.user;
                         clients[message.user] = ws;
@@ -455,27 +458,27 @@ export class WebAdapter extends BotAdapter {
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
-                    console.log('audienceId',message);
+                   
                     // multiple client 
                     this.wss.clients.forEach(async ws => {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
                                     ws.send(JSON.stringify(message))
-                                    if (message.data && message.eventEmit === 'received_message') {
-                                        message.user = ws.user;
-                                        this.sendMessage(message);
-                                        await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
-                                    }
+                                    // if (message.data && message.eventEmit === 'received_message') {
+                                    //     message.user = ws.user;
+                                    //     this.sendMessage(message);
+                                    //     await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
+                                    // }
                                 }
                             }
                             else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                 ws.send(JSON.stringify(message))
-                                if (message.data && message.eventEmit === 'received_message') {
-                                    message.user = ws.user;
-                                    this.sendMessage(message);
-                                     await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
-                                }
+                                // if (message.data && message.eventEmit === 'received_message') {
+                                //     message.user = ws.user;
+                                //     this.sendMessage(message);
+                                //      await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
+                                // }
                             }
 
                         } else {
