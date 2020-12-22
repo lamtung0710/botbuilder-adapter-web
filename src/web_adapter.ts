@@ -351,7 +351,7 @@ export class WebAdapter extends BotAdapter {
                         message.from = message.user;
                         message.recipient = 'bot';
                         // send message from client to admin.
-                        console.log('sendMessage222222', message)
+                       
 
                         const messageData = {
                             "type": "message",
@@ -451,6 +451,24 @@ export class WebAdapter extends BotAdapter {
             if (channel === 'websocket') {
                 // If this turn originated with a websocket message, respond via websocket
                 const ws = clients[activity.recipient.id];
+
+                if (activity.channelData['eventEmit']) {
+                    if (activity.channelData['eventEmit'] === 'create-audience-anonymous') {
+                        ws.room = { audienceId: activity.channelData.data.audience.BotAudienceId, botId: activity.channelData.data.audience.BotId }
+                        if (ws && ws.readyState === 1) {
+                            try {
+                                ws.send(JSON.stringify(message));
+                            }
+                            catch (err) {
+                                console.error(err);
+                            }
+                        }
+                        else {
+                            console.error('Could not send message, no open websocket found');
+                        }
+                    }
+                 
+                } 
                 //delete room when user logout
                 if (context.activity.channelData.type == 'logout') {
                     delete ws['room']['audienceId']
@@ -464,22 +482,18 @@ export class WebAdapter extends BotAdapter {
                         if (ws && ws.readyState === 1) {
                             if (context.activity.channelData['user_login']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_login.audienceId, botId: context.activity.channelData.user_login.botId }))) {
-                                    ws.send(JSON.stringify(message))
-                                    // if (message.data && message.eventEmit === 'received_message') {
-                                    //     message.user = ws.user;
-                                    //     this.sendMessage(message);
-                                    //     await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
-                                    // }
+                                    ws.send(JSON.stringify(message));
                                 }
-                            }
-                            else if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
-                                ws.send(JSON.stringify(message))
-                                // if (message.data && message.eventEmit === 'received_message') {
-                                //     message.user = ws.user;
-                                //     this.sendMessage(message);
-                                //      await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
-                                // }
-                            }
+                            } else if (context.activity.channelData['user_data']) {
+                                if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.user_data.audienceId, botId: context.activity.channelData.user_data.botId }))) {
+                                    ws.send(JSON.stringify(message));
+                                }
+                            } else if (context.activity.channelData['audienceId']) {
+                                if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
+                                    ws.send(JSON.stringify(message));
+                               
+                                } 
+                            }   
 
                         } else {
                             console.error('Could not send message, no open websocket found');
