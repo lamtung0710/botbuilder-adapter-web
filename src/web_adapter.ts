@@ -491,9 +491,10 @@ export class WebAdapter extends BotAdapter {
                             } else if (context.activity.channelData['audienceId']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                     ws.send(JSON.stringify(message));
-                               
                                 } 
-                            }   
+                            }  else {
+                                ws.send(JSON.stringify(message));
+                            }
 
                         } else {
                             console.error('Could not send message, no open websocket found');
