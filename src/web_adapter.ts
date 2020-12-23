@@ -455,13 +455,23 @@ export class WebAdapter extends BotAdapter {
                 if (activity.channelData['eventEmit']) {
                     if (activity.channelData['eventEmit'] === 'create-audience-anonymous') {
                         ws.room = { audienceId: activity.channelData.data.audience.BotAudienceId, botId: activity.channelData.data.audience.BotId }
-                    } else if (activity.channelData['eventEmit'] === 'login-success') {
+                    } else if (activity.channelData['eventEmit'] === 'login-success' || activity.channelData['eventEmit'] === 'register-success') {
                         ws.token = activity.channelData.data.data.token
                     } else if (activity.channelData['eventEmit'] === 'logout-success') {
                         
                     }
                  
                 }
+
+                //handle event hello
+                if (context.activity.channelData.type === 'hello') {
+                    if (context.activity.channelData.token) {
+                        ws.token = context.activity.channelData.token
+                        // stop send flow welcome when user is logged in (user had token)
+                        return
+                    }
+                }
+
                 //delete room when user logout
                 if (context.activity.channelData.type === 'logout') {
                     delete ws['room']['audienceId'];
