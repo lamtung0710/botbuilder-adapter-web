@@ -455,28 +455,42 @@ export class WebAdapter extends BotAdapter {
                 if (activity.channelData['eventEmit']) {
                     if (activity.channelData['eventEmit'] === 'create-audience-anonymous') {
                         ws.room = { audienceId: activity.channelData.data.audience.BotAudienceId, botId: activity.channelData.data.audience.BotId }
-                        if (ws && ws.readyState === 1) {
-                            try {
-                                ws.send(JSON.stringify(message));
-                            }
-                            catch (err) {
-                                console.error(err);
-                            }
-                        }
-                        else {
-                            console.error('Could not send message, no open websocket found');
-                        }
+                    } else if (activity.channelData['eventEmit'] === 'login-success') {
+                        ws.token = activity.channelData.data.data.token
+                    } else if (activity.channelData['eventEmit'] === 'logout-success') {
+                        
                     }
                  
-                } 
+                }
                 //delete room when user logout
-                if (context.activity.channelData.type == 'logout') {
-                    delete ws['room']['audienceId']
-                    delete ws['room']['botId']
+                if (context.activity.channelData.type === 'logout') {
+                    delete ws['room']['audienceId'];
+                    delete ws['room']['botId'];
+
+                    const token = context.activity.channelData.token;
+                    this.wss.clients.forEach(function each(ws) {
+                        if (ws && ws.readyState === 1) {
+                            if (token === ws['token']) {
+                                ws.send(JSON.stringify({ 
+                                    type: 'message',
+                                    status: true,
+                                    eventEmit: 'unauthenticate'
+                                }))
+                            }
+                        }
+                                
+                    });
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
-                   
+                    
+                    //event hello
+                    if (!context.activity.channelData['user_login'] && !context.activity.channelData['user_data'] && !context.activity.channelData['audienceId']) {
+                        if (ws && ws.readyState === 1) {
+                            ws.send(JSON.stringify(message))
+                        }
+                    }
+
                     // multiple client 
                     this.wss.clients.forEach(async ws => {
                         if (ws && ws.readyState === 1) {
@@ -492,9 +506,7 @@ export class WebAdapter extends BotAdapter {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                     ws.send(JSON.stringify(message));
                                 } 
-                            }  else {
-                                ws.send(JSON.stringify(message));
-                            }
+                            } 
 
                         } else {
                             console.error('Could not send message, no open websocket found');
