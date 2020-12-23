@@ -59,7 +59,6 @@ export declare class WebAdapter extends BotAdapter {
      * @param botkit
      */
     init(botkit: any): void;
-    protected storageMessage(messageType: any, messageData: any, ChannelId: any, sendBy: any): Promise<any>;
     private sendMessage;
     /**
      * Bind a websocket listener to an existing webserver object.
@@ -121,5 +120,4 @@ export declare class WebAdapter extends BotAdapter {
      * @param user
      */
     getConnection(user: string): WebSocket;
-    getHistory: (ChannelId: any, skip: any, limit: any) => any;
 }
