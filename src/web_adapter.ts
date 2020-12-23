@@ -12,7 +12,7 @@ import * as WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import * as _ from 'lodash';
 import * as mongoose from 'mongoose';
-import MessageWeb from './message-web.model';
+
 
 
 const debug = Debug('botkit:web');
@@ -92,21 +92,21 @@ export class WebAdapter extends BotAdapter {
             });
         }
     }
-    protected async storageMessage(messageType, messageData, ChannelId, sendBy) {
-        if (!process.env.STORE_MESSAGE)
-            return
-        try {
-            let message = new MessageWeb({
-                MessageType: messageType,
-                Message: messageData,
-                ChannelId,
-                sendBy
-            });
-            return await message.save();
-        } catch (error) {
-            console.log(error);
-        }
-    }
+    // protected async storageMessage(messageType, messageData, ChannelId, sendBy) {
+    //     if (!process.env.STORE_MESSAGE)
+    //         return
+    //     try {
+    //         let message = new MessageWeb({
+    //             MessageType: messageType,
+    //             Message: messageData,
+    //             ChannelId,
+    //             sendBy
+    //         });
+    //         return await message.save();
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // }
     private sendMessage(message) {
         try {
             if (conversation[message.user]) {
@@ -527,17 +527,7 @@ export class WebAdapter extends BotAdapter {
                     if (ws && ws.readyState === 1) {
                         try {
                             ws.send(JSON.stringify(message));
-                            // message.user = activity.recipient.id;
-                            // message.from = 'bot';
-                            // message.recipient = message.user;
-                            if (message.data && message.eventEmit === 'received_message') {
-                                message.user = ws.user;
-                                this.sendMessage(message);
-                                 await this.storageMessage(message.data.Type || 'text', message, ws.user, 'bot');
-                            }
-                            // if (message?.type === ActivityTypes.Message && message?.data.Type) {
-                            //     await this.storageMessage(message.data.Type || 'text', message.data, message.user, message.from);
-                            // }
+                        
                         } catch (err) {
                             console.error(err);
                         }
@@ -666,7 +656,5 @@ export class WebAdapter extends BotAdapter {
         }
         return clients[user];
     }
-    public getHistory = (ChannelId, skip, limit) => {
-        return MessageWeb.find({ ChannelId }).sort({ 'CreatedUTCDate': -1 }).skip(skip).limit(limit);
-    }
+   
 }
