@@ -445,8 +445,8 @@ export class WebAdapter extends BotAdapter {
             const activity = activities[a];
 
             const message = {
-                type: activity.type,
-                text: activity.text
+                type: activities[a].type,
+                text: activities[a].text
             };//this.activityToMessage(activity);
 
             const channel = context.activity.channelId;
