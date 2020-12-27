@@ -351,7 +351,7 @@ export class WebAdapter extends BotAdapter {
                         message.from = message.user;
                         message.recipient = 'bot';
                         // send message from client to admin.
-                       
+
 
                         const messageData = {
                             "type": "message",
@@ -444,7 +444,10 @@ export class WebAdapter extends BotAdapter {
         for (let a = 0; a < activities.length; a++) {
             const activity = activities[a];
 
-            const message = this.activityToMessage(activity);
+            const message = {
+                type: activity.type,
+                text: activity.text
+            };//this.activityToMessage(activity);
 
             const channel = context.activity.channelId;
 
@@ -458,9 +461,9 @@ export class WebAdapter extends BotAdapter {
                     } else if (activity.channelData['eventEmit'] === 'login-success' || activity.channelData['eventEmit'] === 'register-success') {
                         ws.token = activity.channelData.data.data.token
                     } else if (activity.channelData['eventEmit'] === 'logout-success') {
-                        
+
                     }
-                 
+
                 }
 
                 //handle event hello
@@ -481,19 +484,19 @@ export class WebAdapter extends BotAdapter {
                     this.wss.clients.forEach(function each(ws) {
                         if (ws && ws.readyState === 1) {
                             if (token === ws['token']) {
-                                ws.send(JSON.stringify({ 
+                                ws.send(JSON.stringify({
                                     type: 'message',
                                     status: true,
                                     eventEmit: 'unauthenticate'
                                 }))
                             }
                         }
-                                
+
                     });
                 }
 
                 if (ws && ws['room']['audienceId'] && ws['room']['botId']) {
-                    
+
                     //event hello
                     if (!context.activity.channelData['user_login'] && !context.activity.channelData['user_data'] && !context.activity.channelData['audienceId']) {
                         if (ws && ws.readyState === 1) {
@@ -515,8 +518,8 @@ export class WebAdapter extends BotAdapter {
                             } else if (context.activity.channelData['audienceId']) {
                                 if (JSON.stringify(ws.room) === (JSON.stringify({ audienceId: context.activity.channelData.audienceId, botId: context.activity.channelData.botId }))) {
                                     ws.send(JSON.stringify(message));
-                                } 
-                            } 
+                                }
+                            }
 
                         } else {
                             console.error('Could not send message, no open websocket found');
@@ -527,7 +530,7 @@ export class WebAdapter extends BotAdapter {
                     if (ws && ws.readyState === 1) {
                         try {
                             ws.send(JSON.stringify(message));
-                        
+
                         } catch (err) {
                             console.error(err);
                         }
@@ -656,5 +659,5 @@ export class WebAdapter extends BotAdapter {
         }
         return clients[user];
     }
-   
+
 }
